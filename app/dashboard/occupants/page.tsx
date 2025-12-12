@@ -20,12 +20,12 @@ export default function OccupantsPage() {
   }
 
   const onCampusOccupants = rooms
-    .filter(room => properties.find(p => p.id === room.propertyId)?.type === 'lodge')
-    .reduce((sum, room) => sum + room.occupants.length, 0)
+    .filter((room: any) => properties.find((p: any) => p.id === room.propertyId)?.type === 'lodge')
+    .reduce((sum: number, room: any) => sum + room.occupants.length, 0)
   
   const offCampusOccupants = rooms
-    .filter(room => properties.find(p => p.id === room.propertyId)?.type !== 'lodge')
-    .reduce((sum, room) => sum + room.occupants.length, 0)
+    .filter((room: any) => properties.find((p: any) => p.id === room.propertyId)?.type !== 'lodge')
+    .reduce((sum: number, room: any) => sum + room.occupants.length, 0)
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">

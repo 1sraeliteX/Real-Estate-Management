@@ -25,21 +25,21 @@ export default function DashboardPage() {
 
   // Calculate room stats
   const totalRooms = rooms.length
-  const occupiedRooms = rooms.filter(r => r.status === 'occupied').length
+  const occupiedRooms = rooms.filter((r: any) => r.status === 'occupied').length
   const vacantRooms = totalRooms - occupiedRooms
 
   // Calculate property type stats
-  const onCampusProperties = properties.filter(p => p.type === 'lodge')
-  const offCampusProperties = properties.filter(p => p.type !== 'lodge')
+  const onCampusProperties = properties.filter((p: any) => p.type === 'lodge')
+  const offCampusProperties = properties.filter((p: any) => p.type !== 'lodge')
 
   // Calculate stats from real data
-  const totalOccupants = rooms.reduce((sum, room) => sum + room.occupants.length, 0)
-  const totalFinance = rooms.reduce((sum, room) => {
-    const paidAmount = room.occupants.reduce((occupantSum, occupant) => occupantSum + occupant.amountPaid, 0)
+  const totalOccupants = rooms.reduce((sum: number, room: any) => sum + room.occupants.length, 0)
+  const totalFinance = rooms.reduce((sum: number, room: any) => {
+    const paidAmount = room.occupants.reduce((occupantSum: number, occupant: any) => occupantSum + occupant.amountPaid, 0)
     return sum + paidAmount
   }, 0)
-  const pendingPayments = rooms.reduce((sum, room) => {
-    const pendingAmount = room.occupants.reduce((occupantSum, occupant) => {
+  const pendingPayments = rooms.reduce((sum: number, room: any) => {
+    const pendingAmount = room.occupants.reduce((occupantSum: number, occupant: any) => {
       return occupantSum + (occupant.totalRent - occupant.amountPaid)
     }, 0)
     return sum + pendingAmount
@@ -51,8 +51,8 @@ export default function DashboardPage() {
     onCampusCount: onCampusProperties.length,
     offCampusCount: offCampusProperties.length,
     totalOccupants,
-    occupiedProperties: properties.filter(p => p.status === 'occupied').length,
-    availableProperties: properties.filter(p => p.status === 'available').length,
+    occupiedProperties: properties.filter((p: any) => p.status === 'occupied').length,
+    availableProperties: properties.filter((p: any) => p.status === 'available').length,
     pendingPayments,
   }
 
@@ -220,38 +220,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Additional Stats Section */}
-      <h2 className="text-3xl font-bold text-gray-900 mb-6 mt-8">📊 More Details</h2>
 
-      {/* Occupants Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl border-2 border-purple-200 p-6 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-700">All Tenants</h3>
-            <Users className="w-8 h-8 text-purple-600" />
-          </div>
-          <p className="text-5xl font-bold text-gray-900">{stats.totalOccupants}</p>
-          <p className="text-base text-gray-600 mt-2">People living in properties</p>
-        </div>
-        <div className="bg-white rounded-xl border-2 border-blue-200 p-6 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-700">Houses with People</h3>
-            <Home className="w-8 h-8 text-blue-600" />
-          </div>
-          <p className="text-5xl font-bold text-gray-900">{stats.occupiedProperties}</p>
-          <p className="text-base text-gray-600 mt-2">
-            {stats.totalProperties > 0 ? ((stats.occupiedProperties / stats.totalProperties) * 100).toFixed(0) : 0}% of all properties
-          </p>
-        </div>
-        <div className="bg-white rounded-xl border-2 border-green-200 p-6 shadow-md">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-700">Empty Houses</h3>
-            <Building2 className="w-8 h-8 text-green-600" />
-          </div>
-          <p className="text-5xl font-bold text-gray-900">{stats.availableProperties}</p>
-          <p className="text-base text-gray-600 mt-2">Ready for new people</p>
-        </div>
-      </div>
 
       {/* Recent Activities */}
       <div className="mt-8 bg-white rounded-xl border-2 border-gray-200 p-6 shadow-md">
@@ -274,13 +243,17 @@ export default function DashboardPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {activities.slice(0, 10).map((activity) => {
-                  const actionColors = {
+                {activities.slice(0, 10).map((activity: any) => {
+                  const actionColors: { [key: string]: string } = {
                     added: 'bg-green-100 text-green-800',
                     updated: 'bg-blue-100 text-blue-800',
-                    deleted: 'bg-red-100 text-red-800'
+                    deleted: 'bg-red-100 text-red-800',
+                    created: 'bg-green-100 text-green-800',
+                    property: 'bg-purple-100 text-purple-800',
+                    payment: 'bg-green-100 text-green-800',
+                    maintenance: 'bg-yellow-100 text-yellow-800'
                   }
-                  const categoryColors = {
+                  const categoryColors: { [key: string]: string } = {
                     property: 'bg-purple-100 text-purple-800',
                     occupant: 'bg-orange-100 text-orange-800',
                     room: 'bg-cyan-100 text-cyan-800',
@@ -290,13 +263,13 @@ export default function DashboardPage() {
                   return (
                     <tr key={activity.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4">
-                        <span className={`px-3 py-2 text-sm font-semibold rounded-lg capitalize ${actionColors[activity.type]}`}>
+                        <span className={`px-3 py-2 text-sm font-semibold rounded-lg capitalize ${actionColors[activity.type] || 'bg-gray-100 text-gray-800'}`}>
                           {activity.type}
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <span className={`px-3 py-2 text-sm font-semibold rounded-lg capitalize ${categoryColors[activity.category]}`}>
-                          {activity.category}
+                        <span className={`px-3 py-2 text-sm font-semibold rounded-lg capitalize ${categoryColors[activity.title] || 'bg-gray-100 text-gray-800'}`}>
+                          {activity.title}
                         </span>
                       </td>
                       <td className="px-4 py-4 text-base text-gray-900">{activity.description}</td>

@@ -2,21 +2,38 @@
 
 import { useState, useEffect } from 'react'
 import { X, Building2, Users, DollarSign, CheckCircle } from 'lucide-react'
+import { AuthClient } from '@/lib/client/authClient'
 
 export default function WelcomeGuide() {
   const [show, setShow] = useState(false)
   const [step, setStep] = useState(0)
 
   useEffect(() => {
-    const hasSeenGuide = localStorage.getItem('hasSeenWelcomeGuide')
-    if (!hasSeenGuide) {
-      setShow(true)
-    }
+    checkWelcomeGuideStatus()
   }, [])
 
-  const handleClose = () => {
-    localStorage.setItem('hasSeenWelcomeGuide', 'true')
-    setShow(false)
+  const checkWelcomeGuideStatus = async () => {
+    try {
+      const settings = await AuthClient.getUserSettings()
+      if (!settings?.hasSeenWelcomeGuide) {
+        setShow(true)
+      }
+    } catch (error) {
+      console.error('Error checking welcome guide status:', error)
+      // Fallback to showing guide if there's an error
+      setShow(true)
+    }
+  }
+
+  const handleClose = async () => {
+    try {
+      await AuthClient.updateUserSettings({ hasSeenWelcomeGuide: true })
+      setShow(false)
+    } catch (error) {
+      console.error('Error updating welcome guide status:', error)
+      // Still close the guide even if update fails
+      setShow(false)
+    }
   }
 
   const steps = [

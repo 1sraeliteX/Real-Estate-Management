@@ -1,28 +1,29 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { Building2, MapPin, Bath, Search, Plus, Edit2, Trash2, ArrowLeft } from 'lucide-react'
 import StatsCard from '@/components/StatsCard'
-import { mockProperties } from '@/lib/mockApi'
 import { Property } from '@/types'
 import { useRouter } from 'next/navigation'
 import { useActivity } from '@/lib/contexts/ActivityContext'
+import { useProperties, useDeleteProperty } from '@/lib/hooks/useProperties'
+import LoadingSpinner from '@/components/LoadingSpinner'
 
 export default function OnCampusPropertiesPage() {
   const router = useRouter()
-  const { addActivity, showToast } = useActivity()
-  const [properties, setProperties] = useState<Property[]>([])
+  const { addActivity } = useActivity()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  
+  const { data: allProperties = [], isLoading } = useProperties()
+  const deleteProperty = useDeleteProperty((name) => {
+    addActivity('deleted', 'property', `Deleted property: ${name}`)
+  })
 
-  useEffect(() => {
-    const customProperties = JSON.parse(localStorage.getItem('customProperties') || '[]')
-    const allProperties = [...mockProperties, ...customProperties]
-    setProperties(allProperties.filter(p => p.type === 'lodge'))
-  }, [])
+  const properties = allProperties.filter((p: any) => p.type === 'lodge')
 
-  const filteredProperties = properties.filter(property => {
+  const filteredProperties = properties.filter((property: any) => {
     const matchesSearch = property.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          property.address.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || property.status === statusFilter
@@ -31,9 +32,9 @@ export default function OnCampusPropertiesPage() {
 
   const stats = {
     total: properties.length,
-    available: properties.filter(p => p.status === 'available').length,
-    occupied: properties.filter(p => p.status === 'occupied').length,
-    maintenance: properties.filter(p => p.status === 'maintenance').length
+    available: properties.filter((p: any) => p.status === 'available').length,
+    occupied: properties.filter((p: any) => p.status === 'occupied').length,
+    maintenance: properties.filter((p: any) => p.status === 'maintenance').length
   }
 
   const getStatusColor = (status: Property['status']) => {
@@ -44,18 +45,23 @@ export default function OnCampusPropertiesPage() {
     }
   }
 
-  const handleDeleteProperty = (propertyId: string) => {
-    const property = properties.find(p => p.id === propertyId)
+  const handleDeleteProperty = async (propertyId: string) => {
     if (confirm('Are you sure you want to delete this property?')) {
-      const updatedProperties = properties.filter(p => p.id !== propertyId)
-      setProperties(updatedProperties)
-      const customProperties = JSON.parse(localStorage.getItem('customProperties') || '[]')
-      const updatedCustom = customProperties.filter((p: Property) => p.id !== propertyId)
-      localStorage.setItem('customProperties', JSON.stringify(updatedCustom))
-      
-      // Log activity and show notification
-      addActivity('deleted', 'property', `Deleted property: ${property?.name || 'Unknown'}`)
+      try {
+        await deleteProperty.mutateAsync(propertyId)
+      } catch (error) {
+        console.error('Error deleting property:', error)
+        alert('Failed to delete property. Please try again.')
+      }
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner />
+      </div>
+    )
   }
 
   return (
@@ -122,7 +128,7 @@ export default function OnCampusPropertiesPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-          {filteredProperties.map((property) => (
+          {filteredProperties.map((property: any) => (
             <div
               key={property.id}
               className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-2xl hover:border-blue-300 transition-all duration-300"

@@ -45,7 +45,7 @@ export interface RoomOccupant {
   rentExpiryDate: string
   totalRent: number
   amountPaid: number
-  paymentStatus: 'completed' | 'pending'
+  paymentStatus: 'completed' | 'pending' | 'overdue'
   issues: Issue[]
   notes: Note[]
 }
@@ -90,12 +90,13 @@ export interface Payment {
   propertyName: string
   tenantName: string
   amount: number
-  type: 'rent' | 'deposit' | 'utilities' | 'maintenance'
-  method: 'card' | 'bank' | 'cash' | 'check'
+  type: 'rent' | 'deposit' | 'utilities' | 'maintenance' | 'late_fee' | 'refund' | 'adjustment' | 'service_charge'
+  method: 'card' | 'bank' | 'cash' | 'check' | 'mobile' | 'pending'
   status: 'completed' | 'pending' | 'overdue'
   dueDate: string
   paidDate?: string
   description: string
+  roomNumber?: string
 }
 
 export interface MaintenanceRequest {

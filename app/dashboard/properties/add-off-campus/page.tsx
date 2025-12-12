@@ -6,12 +6,17 @@ import { ArrowLeft, Home, Plus, X, Upload, Camera } from 'lucide-react'
 import Link from 'next/link'
 import { getPropertyTypes } from '@/lib/propertyTypes'
 import { useActivity } from '@/lib/contexts/ActivityContext'
+import { useCreateProperty } from '@/lib/hooks/useProperties'
+import { Property } from '@/types'
 
 export default function AddOffCampusPropertyPage() {
   const router = useRouter()
   const { addActivity } = useActivity()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [propertyTypes, setPropertyTypes] = useState<string[]>([])
+  const createProperty = useCreateProperty((name) => {
+    addActivity('added', 'property', `Added off-campus property: ${name}`)
+  })
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -27,45 +32,47 @@ export default function AddOffCampusPropertyPage() {
   const [newAmenity, setNewAmenity] = useState('')
 
   useEffect(() => {
-    setPropertyTypes(getPropertyTypes())
+    const loadPropertyTypes = async () => {
+      try {
+        const types = await getPropertyTypes()
+        setPropertyTypes(types)
+      } catch (error) {
+        console.error('Failed to load property types:', error)
+      }
+    }
+    loadPropertyTypes()
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Create new property object
-    const newProperty = {
-      id: Date.now().toString(),
-      name: formData.name,
-      address: formData.address,
-      type: formData.type,
-      status: 'available' as const,
-      yearlyRent: parseInt(formData.yearlyRent),
-      bedrooms: parseInt(formData.bedrooms),
-      bathrooms: parseInt(formData.bathrooms),
-      kitchens: parseInt(formData.kitchens),
-      area: 0, // Not used for off-campus
-      description: formData.description,
-      amenities: formData.amenities,
-      images: formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
-      yearBuilt: new Date().getFullYear(),
-    }
+    try {
+      // Create new property object
+      const newProperty: Omit<Property, 'id'> = {
+        name: formData.name,
+        address: formData.address,
+        type: formData.type as Property['type'],
+        status: 'available',
+        yearlyRent: parseInt(formData.yearlyRent),
+        bedrooms: parseInt(formData.bedrooms),
+        bathrooms: parseInt(formData.bathrooms),
+        numberOfKitchens: parseInt(formData.kitchens),
+        numberOfRooms: 0, // Not used for off-campus
+        numberOfBathrooms: parseInt(formData.bathrooms),
+        area: 0, // Not used for off-campus
+        description: formData.description,
+        amenities: formData.amenities,
+        images: formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+        yearBuilt: new Date().getFullYear(),
+        parkingSpaces: 'yes',
+      }
 
-    // Get existing properties from localStorage
-    const existingProperties = JSON.parse(localStorage.getItem('customProperties') || '[]')
-    
-    // Add new property
-    existingProperties.push(newProperty)
-    
-    // Save back to localStorage
-    localStorage.setItem('customProperties', JSON.stringify(existingProperties))
-    
-    // Log activity and show notification
-    addActivity('added', 'property', `Added off-campus property: ${formData.name}`)
-    
-    // Redirect to properties page
-    alert('Property created successfully!')
-    router.push('/dashboard/properties')
+      await createProperty.mutateAsync(newProperty)
+      router.push('/dashboard/properties')
+    } catch (error) {
+      console.error('Error creating property:', error)
+      alert('Failed to create property. Please try again.')
+    }
   }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {

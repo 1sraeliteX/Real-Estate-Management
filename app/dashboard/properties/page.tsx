@@ -1,13 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building2, Home } from 'lucide-react'
 import { useProperties } from '@/lib/hooks/useProperties'
 import LoadingSpinner from '@/components/LoadingSpinner'
+import { migratePropertiesData } from '@/lib/utils/migrateProperties'
 
 export default function PropertiesPage() {
   const router = useRouter()
   const { data: properties = [], isLoading } = useProperties()
+
+  useEffect(() => {
+    // Migrate old properties data on first load
+    migratePropertiesData()
+  }, [])
 
   if (isLoading) {
     return (
@@ -17,8 +24,8 @@ export default function PropertiesPage() {
     )
   }
   
-  const onCampusProperties = properties.filter(p => p.type === 'lodge')
-  const offCampusProperties = properties.filter(p => p.type !== 'lodge')
+  const onCampusProperties = properties.filter((p: any) => p.type === 'lodge')
+  const offCampusProperties = properties.filter((p: any) => p.type !== 'lodge')
   
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">

@@ -6,7 +6,10 @@ import { Bell, Search, User, ChevronRight, Settings } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import WelcomeGuide from '@/components/WelcomeGuide'
 import HelpButton from '@/components/HelpButton'
+import MigrationHandler from '@/components/MigrationHandler'
 import { ActivityProvider } from '@/lib/contexts/ActivityContext'
+import { AuthClient } from '@/lib/client/authClient'
+import { useClickOutside } from '@/lib/hooks/useClickOutside'
 
 export default function DashboardLayout({
   children,
@@ -15,33 +18,53 @@ export default function DashboardLayout({
 }) {
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false)
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
-  const [appName, setAppName] = useState('Property Manager')
+  const [appName, setAppName] = useState('CornerStone Realty App')
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const pathname = usePathname()
   const router = useRouter()
 
-  useEffect(() => {
-    // Load app name from localStorage
-    const savedAppName = localStorage.getItem('appName')
-    if (savedAppName) {
-      setAppName(savedAppName)
-    }
+  // Click outside handlers
+  const mobileNotificationsRef = useClickOutside<HTMLDivElement>(() => {
+    setShowNotifications(false)
+  })
+  
+  const mobileUserMenuRef = useClickOutside<HTMLDivElement>(() => {
+    setShowUserMenu(false)
+  })
 
-    // Listen for storage changes
-    const handleStorageChange = () => {
-      const updatedAppName = localStorage.getItem('appName')
-      if (updatedAppName) {
-        setAppName(updatedAppName)
+  const desktopNotificationsRef = useClickOutside<HTMLDivElement>(() => {
+    setShowNotifications(false)
+  })
+  
+  const desktopUserMenuRef = useClickOutside<HTMLDivElement>(() => {
+    setShowUserMenu(false)
+  })
+
+  useEffect(() => {
+    // Load app name from database
+    const loadAppName = async () => {
+      try {
+        const userSettings = await AuthClient.getUserSettings()
+        if (userSettings?.appName) {
+          setAppName(userSettings.appName)
+        }
+      } catch (error) {
+        console.error('Failed to load app name:', error)
       }
     }
+    
+    loadAppName()
 
-    window.addEventListener('storage', handleStorageChange)
-    window.addEventListener('appNameChanged', handleStorageChange)
+    // Listen for app name changes
+    const handleAppNameChange = () => {
+      loadAppName()
+    }
+
+    window.addEventListener('appNameChanged', handleAppNameChange)
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange)
-      window.removeEventListener('appNameChanged', handleStorageChange)
+      window.removeEventListener('appNameChanged', handleAppNameChange)
     }
   }, [])
 
@@ -68,6 +91,7 @@ export default function DashboardLayout({
   return (
     <ActivityProvider>
       <div className="flex min-h-screen bg-gray-50">
+        <MigrationHandler />
         <WelcomeGuide />
         <HelpButton />
       
@@ -87,7 +111,9 @@ export default function DashboardLayout({
         appName={appName}
       />
       
-      <main className="flex-1 w-full lg:ml-0">
+      <main className={`flex-1 w-full transition-all duration-300 ${
+        isSidebarCollapsed ? 'lg:ml-20' : 'lg:ml-64'
+      }`}>
         {/* Enhanced Header - Mobile */}
         <div className="lg:hidden sticky top-0 z-30 bg-white border-b border-gray-200 shadow-sm">
           <div className="px-4 py-3">
@@ -105,7 +131,7 @@ export default function DashboardLayout({
               <h1 className="text-lg font-bold text-gray-900">{appName}</h1>
               
               <div className="flex items-center gap-2">
-                <div className="relative">
+                <div className="relative" ref={mobileNotificationsRef}>
                   <button
                     onClick={() => {
                       setShowNotifications(!showNotifications)
@@ -144,7 +170,7 @@ export default function DashboardLayout({
                   )}
                 </div>
                 
-                <div className="relative">
+                <div className="relative" ref={mobileUserMenuRef}>
                   <button
                     onClick={() => {
                       setShowUserMenu(!showUserMenu)
@@ -251,7 +277,7 @@ export default function DashboardLayout({
                 </div>
 
                 {/* Notifications */}
-                <div className="relative">
+                <div className="relative" ref={desktopNotificationsRef}>
                   <button
                     onClick={() => {
                       setShowNotifications(!showNotifications)
@@ -291,7 +317,7 @@ export default function DashboardLayout({
                 </div>
 
                 {/* User Menu */}
-                <div className="relative">
+                <div className="relative" ref={desktopUserMenuRef}>
                   <button
                     onClick={() => {
                       setShowUserMenu(!showUserMenu)

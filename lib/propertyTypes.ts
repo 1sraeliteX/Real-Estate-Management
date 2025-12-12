@@ -1,4 +1,5 @@
-// Utility functions for managing property types
+// Utility functions for managing property types - now using database
+import { SettingsClient } from './client/settingsClient'
 
 const DEFAULT_PROPERTY_TYPES = [
   'apartment',
@@ -9,44 +10,38 @@ const DEFAULT_PROPERTY_TYPES = [
   'studio'
 ]
 
-export function getPropertyTypes(): string[] {
-  if (typeof window === 'undefined') {
+// Client-side functions that use the API
+export async function getPropertyTypes(): Promise<string[]> {
+  try {
+    const propertyTypes = await SettingsClient.getPropertyTypes()
+    return propertyTypes.map(pt => pt.name)
+  } catch (error) {
+    console.error('Failed to get property types:', error)
     return DEFAULT_PROPERTY_TYPES
   }
-  
-  const savedTypes = localStorage.getItem('propertyTypes')
-  if (savedTypes) {
-    try {
-      return JSON.parse(savedTypes)
-    } catch {
-      return DEFAULT_PROPERTY_TYPES
-    }
+}
+
+export async function addPropertyType(type: string): Promise<string[]> {
+  try {
+    await SettingsClient.addPropertyType(type)
+    return await getPropertyTypes()
+  } catch (error) {
+    console.error('Failed to add property type:', error)
+    throw error
   }
+}
+
+export async function removePropertyType(type: string): Promise<string[]> {
+  try {
+    await SettingsClient.removePropertyType(type)
+    return await getPropertyTypes()
+  } catch (error) {
+    console.error('Failed to remove property type:', error)
+    throw error
+  }
+}
+
+// Synchronous fallback for SSR/initial render
+export function getDefaultPropertyTypes(): string[] {
   return DEFAULT_PROPERTY_TYPES
-}
-
-export function savePropertyTypes(types: string[]): void {
-  if (typeof window !== 'undefined') {
-    localStorage.setItem('propertyTypes', JSON.stringify(types))
-  }
-}
-
-export function addPropertyType(type: string): string[] {
-  const types = getPropertyTypes()
-  const normalizedType = type.toLowerCase().trim()
-  
-  if (!types.includes(normalizedType) && normalizedType) {
-    const updatedTypes = [...types, normalizedType]
-    savePropertyTypes(updatedTypes)
-    return updatedTypes
-  }
-  
-  return types
-}
-
-export function removePropertyType(type: string): string[] {
-  const types = getPropertyTypes()
-  const updatedTypes = types.filter(t => t !== type)
-  savePropertyTypes(updatedTypes)
-  return updatedTypes
 }

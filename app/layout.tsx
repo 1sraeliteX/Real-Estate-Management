@@ -3,7 +3,7 @@ import './globals.css'
 import QueryProvider from '@/lib/providers/QueryProvider'
 
 export const metadata: Metadata = {
-  title: 'Real Estate Admin Dashboard',
+  title: 'CornerStone Realty App',
   description: 'Manage properties, tenants, maintenance, and payments',
 }
 

@@ -1,0 +1,233 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User authentication and profile
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  phone     String?
+  company   String?
+  role      String?
+  bio       String?
+  avatar    String?
+  address   String?  // Added for profile completeness
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sessions     Session[]
+  settings     UserSettings?
+  activities   Activity[]
+  properties   Property[]
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+// User settings and preferences
+model UserSettings {
+  id                   String  @id @default(cuid())
+  userId               String  @unique
+  appName              String  @default("Cornerstone Realty")
+  rentDueReminderDays  Int     @default(7)
+  hasSeenWelcomeGuide  Boolean @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_settings")
+}
+
+// App-wide settings
+model AppSettings {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  value        String
+  description  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("app_settings")
+}
+
+// Property types management
+model PropertyType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("property_types")
+}
+
+// Twilio settings
+model TwilioSettings {
+  id              String   @id @default(cuid())
+  accountSid      String?
+  authToken       String?
+  phoneNumber     String?
+  isEnabled       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("twilio_settings")
+}
+
+// Activity tracking
+model Activity {
+  id          String   @id @default(cuid())
+  userId      String?
+  type        String
+  title       String
+  description String?
+  metadata    String?  // JSON string for additional data
+  createdAt   DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("activities")
+}
+
+// Enhanced Property model to replace localStorage
+model Property {
+  id                   String   @id @default(cuid())
+  name                 String
+  address              String
+  type                 String
+  status               String
+  yearlyRent           Int
+  bedrooms             Int?
+  bathrooms            Int?
+  area                 Int?
+  description          String
+  amenities            String
+  images               String   // JSON string for multiple images
+  yearBuilt            Int
+  parkingSpaces        String
+  numberOfRooms        Int?
+  numberOfKitchens     Int?
+  numberOfBathrooms    Int?
+  waterAvailability    String?
+  userId               String?  // Owner/creator of the property
+  isCustom             Boolean  @default(false) // Distinguish custom vs default properties
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  rooms               Room[]
+  payments            Payment[]
+  maintenanceRequests MaintenanceRequest[]
+  user                User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("properties")
+}
+
+model Room {
+  id              String   @id @default(cuid())
+  propertyId      String
+  propertyName    String
+  roomNumber      String
+  status          String
+  yearlyRent      Int
+  rentStartDate   String?
+  rentExpiryDate  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  property  Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  occupants RoomOccupant[]
+
+  @@map("rooms")
+}
+
+model RoomOccupant {
+  id                 String   @id @default(cuid())
+  roomId             String
+  name               String
+  phone              String
+  nextOfKin          String
+  nextOfKinPhone     String
+  numberOfOccupants  Int
+  rentStartDate      String
+  rentExpiryDate     String
+  totalRent          Int
+  amountPaid         Int
+  paymentStatus      String
+  issues             String
+  notes              String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("room_occupants")
+}
+
+model Payment {
+  id           String   @id @default(cuid())
+  propertyId   String
+  propertyName String
+  tenantName   String
+  amount       Int
+  type         String
+  method       String
+  status       String
+  dueDate      String
+  paidDate     String?
+  description  String
+  roomNumber   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model MaintenanceRequest {
+  id             String   @id @default(cuid())
+  propertyId     String
+  propertyName   String
+  title          String
+  description    String
+  category       String
+  priority       String
+  status         String
+  reportedBy     String
+  reportedDate   String
+  assignedTo     String?
+  estimatedCost  Int
+  actualCost     Int?
+  completedDate  String?
+  resolutionTime Int?
+  notes          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("maintenance_requests")
+}

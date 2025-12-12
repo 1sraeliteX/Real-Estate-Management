@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { Save, Phone, Plus, X, Building2, Eye, EyeOff, Edit3 } from 'lucide-react'
+import { SettingsClient } from '@/lib/client/settingsClient'
+import { AuthClient } from '@/lib/client/authClient'
 
 export default function SettingsPage() {
   const [twilioSettings, setTwilioSettings] = useState({
@@ -29,29 +31,35 @@ export default function SettingsPage() {
   const [rentDueReminderDays, setRentDueReminderDays] = useState(30)
 
   useEffect(() => {
-    // Load property types from localStorage
-    const savedTypes = localStorage.getItem('propertyTypes')
-    if (savedTypes) {
-      setPropertyTypes(JSON.parse(savedTypes))
+    const loadSettings = async () => {
+      try {
+        // Load property types from database
+        const propertyTypesData = await SettingsClient.getPropertyTypes()
+        setPropertyTypes(propertyTypesData.map(pt => pt.name))
+        
+        // Load user settings from database
+        const userSettings = await AuthClient.getUserSettings()
+        if (userSettings) {
+          setAppName(userSettings.appName || 'Property Management')
+          setRentDueReminderDays(userSettings.rentDueReminderDays || 30)
+        }
+        
+        // Load Twilio settings from database
+        const twilioData = await SettingsClient.getTwilioSettings()
+        if (twilioData) {
+          setTwilioSettings({
+            accountSid: twilioData.accountSid || '',
+            authToken: twilioData.authToken || '',
+            phoneNumber: twilioData.phoneNumber || '',
+            enabled: twilioData.isEnabled || false
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load settings:', error)
+      }
     }
     
-    // Load app name from localStorage
-    const savedAppName = localStorage.getItem('appName')
-    if (savedAppName) {
-      setAppName(savedAppName)
-    }
-    
-    // Load rent due reminder days
-    const savedReminderDays = localStorage.getItem('rentDueReminderDays')
-    if (savedReminderDays) {
-      setRentDueReminderDays(parseInt(savedReminderDays))
-    }
-    
-    // Load Twilio settings
-    const savedTwilioSettings = localStorage.getItem('twilioSettings')
-    if (savedTwilioSettings) {
-      setTwilioSettings(JSON.parse(savedTwilioSettings))
-    }
+    loadSettings()
   }, [])
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -62,47 +70,80 @@ export default function SettingsPage() {
     })
   }
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Save to localStorage or backend
-    localStorage.setItem('twilioSettings', JSON.stringify(twilioSettings))
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    try {
+      await SettingsClient.updateTwilioSettings({
+        accountSid: twilioSettings.accountSid,
+        authToken: twilioSettings.authToken,
+        phoneNumber: twilioSettings.phoneNumber,
+        isEnabled: twilioSettings.enabled
+      })
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (error) {
+      console.error('Failed to save Twilio settings:', error)
+      alert('Failed to save Twilio settings')
+    }
   }
 
-  const handleSaveAppName = () => {
+  const handleSaveAppName = async () => {
     if (tempAppName.trim()) {
-      setAppName(tempAppName)
-      localStorage.setItem('appName', tempAppName)
-      setIsEditingAppName(false)
-      // Dispatch custom event to notify other components
-      window.dispatchEvent(new Event('appNameChanged'))
+      try {
+        await AuthClient.updateUserSettings({
+          appName: tempAppName
+        })
+        setAppName(tempAppName)
+        setIsEditingAppName(false)
+        // Dispatch custom event to notify other components
+        window.dispatchEvent(new Event('appNameChanged'))
+      } catch (error) {
+        console.error('Failed to save app name:', error)
+        alert('Failed to save app name')
+      }
     }
   }
 
-  const handleSaveReminderDays = () => {
-    localStorage.setItem('rentDueReminderDays', rentDueReminderDays.toString())
-    alert('Rent due reminder settings saved!')
+  const handleSaveReminderDays = async () => {
+    try {
+      await AuthClient.updateUserSettings({
+        rentDueReminderDays
+      })
+      alert('Rent due reminder settings saved!')
+    } catch (error) {
+      console.error('Failed to save reminder days:', error)
+      alert('Failed to save reminder settings')
+    }
   }
 
-  const handleAddPropertyType = () => {
+  const handleAddPropertyType = async () => {
     if (newPropertyType.trim() && !propertyTypes.includes(newPropertyType.toLowerCase().trim())) {
-      const updatedTypes = [...propertyTypes, newPropertyType.toLowerCase().trim()]
-      setPropertyTypes(updatedTypes)
-      localStorage.setItem('propertyTypes', JSON.stringify(updatedTypes))
-      setNewPropertyType('')
-      setPropertyTypesSaved(true)
-      setTimeout(() => setPropertyTypesSaved(false), 3000)
+      try {
+        await SettingsClient.addPropertyType(newPropertyType.toLowerCase().trim())
+        const updatedTypes = [...propertyTypes, newPropertyType.toLowerCase().trim()]
+        setPropertyTypes(updatedTypes)
+        setNewPropertyType('')
+        setPropertyTypesSaved(true)
+        setTimeout(() => setPropertyTypesSaved(false), 3000)
+      } catch (error) {
+        console.error('Failed to add property type:', error)
+        alert('Failed to add property type')
+      }
     }
   }
 
-  const handleRemovePropertyType = (type: string) => {
+  const handleRemovePropertyType = async (type: string) => {
     if (confirm(`Are you sure you want to remove "${type}" property type?`)) {
-      const updatedTypes = propertyTypes.filter(t => t !== type)
-      setPropertyTypes(updatedTypes)
-      localStorage.setItem('propertyTypes', JSON.stringify(updatedTypes))
-      setPropertyTypesSaved(true)
-      setTimeout(() => setPropertyTypesSaved(false), 3000)
+      try {
+        await SettingsClient.removePropertyType(type)
+        const updatedTypes = propertyTypes.filter(t => t !== type)
+        setPropertyTypes(updatedTypes)
+        setPropertyTypesSaved(true)
+        setTimeout(() => setPropertyTypesSaved(false), 3000)
+      } catch (error) {
+        console.error('Failed to remove property type:', error)
+        alert('Failed to remove property type')
+      }
     }
   }
 

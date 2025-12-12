@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { User, Mail, Phone, MapPin, Camera, Save, X } from 'lucide-react'
+import { AuthClient } from '@/lib/client/authClient'
 import Toast from '@/components/Toast'
 
 interface UserProfile {
@@ -28,25 +29,46 @@ export default function ProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 
   useEffect(() => {
-    // Load profile from localStorage
-    const savedProfile = localStorage.getItem('userProfile')
-    if (savedProfile) {
-      const parsed = JSON.parse(savedProfile)
-      setProfile(parsed)
-      setEditedProfile(parsed)
-      if (parsed.avatar) {
-        setAvatarPreview(parsed.avatar)
+    // Load profile from database
+    const loadProfile = async () => {
+      try {
+        const user = await AuthClient.getCurrentUser()
+        if (user) {
+          const userProfile = {
+            name: user.name || 'Admin User',
+            email: user.email || 'admin@property.com',
+            phone: user.phone || '+234 800 000 0000',
+            address: user.address || 'Lagos, Nigeria',
+            role: user.role || 'Administrator',
+            avatar: user.avatar || undefined
+          }
+          setProfile(userProfile)
+          setEditedProfile(userProfile)
+          if (user.avatar) {
+            setAvatarPreview(user.avatar)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error)
+        setToast({ message: 'Failed to load profile', type: 'error' })
       }
     }
+    loadProfile()
   }, [])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
-      localStorage.setItem('userProfile', JSON.stringify(editedProfile))
+      await AuthClient.updateProfile({
+        name: editedProfile.name,
+        phone: editedProfile.phone,
+        address: editedProfile.address,
+        avatar: editedProfile.avatar
+      })
       setProfile(editedProfile)
       setIsEditing(false)
       setToast({ message: 'Profile updated successfully!', type: 'success' })
     } catch (error) {
+      console.error('Failed to update profile:', error)
       setToast({ message: 'Failed to update profile', type: 'error' })
     }
   }

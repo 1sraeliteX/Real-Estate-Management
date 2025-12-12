@@ -34,10 +34,10 @@ export default function Sidebar({ isCollapsed, onToggle, isMobileOpen, onMobileC
 
   return (
     <aside 
-      className={`bg-gray-900 text-white min-h-screen p-6 transition-all duration-300 relative ${
+      className={`bg-gray-900 text-white min-h-screen p-6 transition-all duration-300 ${
         isCollapsed ? 'w-20' : 'w-64'
       } ${
-        isMobileOpen ? 'fixed inset-y-0 left-0 z-50 lg:relative' : 'hidden lg:block'
+        isMobileOpen ? 'fixed inset-y-0 left-0 z-50' : 'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:block lg:z-40'
       }`}
     >
       {/* Close Button - Mobile only */}

@@ -1,6 +1,8 @@
 import axios from 'axios'
 import { Property, Room, RoomOccupant, MaintenanceRequest, Payment } from '@/types'
 import { mockApiAdapter } from './mockApiAdapter'
+import { ErrorHandler, NetworkError } from './errorHandler'
+import { validateProperty, validateRoom, validateOccupant, validatePayment, validateMaintenanceRequest } from './validation'
 
 // Configure your API base URL
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
@@ -11,24 +13,96 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout
 })
 
-// Add auth token to requests if available
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('authToken')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
+// Request interceptor - cookies are automatically included
+api.interceptors.request.use(
+  (config) => {
+    // Cookies are automatically included in requests
+    // No need to manually add auth tokens
+    return config
+  },
+  (error) => {
+    ErrorHandler.logError(ErrorHandler.handle(error), 'API Request Interceptor')
+    return Promise.reject(error)
   }
-  return config
-})
+)
 
-// Properties API
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const appError = ErrorHandler.handle(error)
+    ErrorHandler.logError(appError, 'API Response')
+    
+    // Handle specific error cases
+    if (ErrorHandler.isAuthError(appError)) {
+      // Redirect to login page
+      if (typeof window !== 'undefined') {
+        window.location.href = '/login'
+      }
+    }
+    
+    return Promise.reject(appError)
+  }
+)
+
+// Properties API with validation
 export const propertiesApi = {
-  getAll: () => USE_MOCK ? mockApiAdapter.properties.getAll() : api.get<Property[]>('/properties'),
-  getById: (id: string) => USE_MOCK ? mockApiAdapter.properties.getById(id) : api.get<Property>(`/properties/${id}`),
-  create: (data: Omit<Property, 'id'>) => USE_MOCK ? mockApiAdapter.properties.create(data) : api.post<Property>('/properties', data),
-  update: (id: string, data: Partial<Property>) => USE_MOCK ? mockApiAdapter.properties.update(id, data) : api.put<Property>(`/properties/${id}`, data),
-  delete: (id: string) => USE_MOCK ? mockApiAdapter.properties.delete(id) : api.delete(`/properties/${id}`),
+  getAll: async () => {
+    try {
+      return USE_MOCK ? mockApiAdapter.properties.getAll() : api.get<Property[]>('/properties')
+    } catch (error) {
+      throw new NetworkError('Failed to fetch properties')
+    }
+  },
+  
+  getById: async (id: string) => {
+    if (!id?.trim()) throw new Error('Property ID is required')
+    try {
+      return USE_MOCK ? mockApiAdapter.properties.getById(id) : api.get<Property>(`/properties/${id}`)
+    } catch (error) {
+      throw new NetworkError(`Failed to fetch property with ID: ${id}`)
+    }
+  },
+  
+  create: async (data: Omit<Property, 'id'>) => {
+    const validation = validateProperty(data)
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`)
+    }
+    
+    try {
+      return USE_MOCK ? mockApiAdapter.properties.create(data) : api.post<Property>('/properties', data)
+    } catch (error) {
+      throw new NetworkError('Failed to create property')
+    }
+  },
+  
+  update: async (id: string, data: Partial<Property>) => {
+    if (!id?.trim()) throw new Error('Property ID is required')
+    
+    const validation = validateProperty(data)
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`)
+    }
+    
+    try {
+      return USE_MOCK ? mockApiAdapter.properties.update(id, data) : api.put<Property>(`/properties/${id}`, data)
+    } catch (error) {
+      throw new NetworkError(`Failed to update property with ID: ${id}`)
+    }
+  },
+  
+  delete: async (id: string) => {
+    if (!id?.trim()) throw new Error('Property ID is required')
+    try {
+      return USE_MOCK ? mockApiAdapter.properties.delete(id) : api.delete(`/properties/${id}`)
+    } catch (error) {
+      throw new NetworkError(`Failed to delete property with ID: ${id}`)
+    }
+  },
 }
 
 // Rooms API

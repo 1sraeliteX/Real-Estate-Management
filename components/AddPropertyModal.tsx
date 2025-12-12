@@ -36,7 +36,17 @@ export default function AddPropertyModal({ isOpen, onClose, onAdd }: AddProperty
   const [propertyTypes, setPropertyTypes] = useState<string[]>([])
 
   useEffect(() => {
-    setPropertyTypes(getPropertyTypes())
+    const loadPropertyTypes = async () => {
+      try {
+        const types = await getPropertyTypes()
+        setPropertyTypes(types)
+      } catch (error) {
+        console.error('Failed to load property types:', error)
+      }
+    }
+    if (isOpen) {
+      loadPropertyTypes()
+    }
   }, [isOpen])
 
   if (!isOpen) return null

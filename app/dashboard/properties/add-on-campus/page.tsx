@@ -1,14 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Building2, Plus, X } from 'lucide-react'
+import { ArrowLeft, Building2, Plus, X, Upload, Camera } from 'lucide-react'
 import Link from 'next/link'
 import { useActivity } from '@/lib/contexts/ActivityContext'
+import { useCreateProperty } from '@/lib/hooks/useProperties'
+import { Property } from '@/types'
 
 export default function AddOnCampusPropertyPage() {
   const router = useRouter()
   const { addActivity } = useActivity()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const createProperty = useCreateProperty((name) => {
+    addActivity('added', 'property', `Added on-campus property: ${name}`)
+  })
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -17,18 +23,63 @@ export default function AddOnCampusPropertyPage() {
     yearlyRent: '',
     description: '',
     amenities: [] as string[],
+    images: [] as string[],
   })
   const [newAmenity, setNewAmenity] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('On-Campus Property Data:', formData)
     
-    // Log activity and show notification
-    addActivity('added', 'property', `Added on-campus property: ${formData.name}`)
-    
-    router.push('/dashboard/properties')
+    try {
+      // Create new property object
+      const newProperty: Omit<Property, 'id'> = {
+        name: formData.name,
+        address: formData.address,
+        type: 'lodge',
+        status: 'available',
+        yearlyRent: parseInt(formData.yearlyRent),
+        numberOfRooms: parseInt(formData.numberOfRooms),
+        numberOfBathrooms: parseInt(formData.numberOfBathrooms),
+        bedrooms: 0, // Not used for on-campus
+        bathrooms: parseInt(formData.numberOfBathrooms),
+        numberOfKitchens: 0, // Not used for on-campus
+        area: 0, // Not used for on-campus
+        description: formData.description,
+        amenities: formData.amenities,
+        images: formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+        yearBuilt: new Date().getFullYear(),
+        parkingSpaces: 'yes',
+      }
+
+      await createProperty.mutateAsync(newProperty)
+      router.push('/dashboard/properties')
+    } catch (error) {
+      console.error('Error creating property:', error)
+      alert('Failed to create property. Please try again.')
+    }
+  }
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (files) {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setFormData(prev => ({
+            ...prev,
+            images: [...prev.images, reader.result as string]
+          }))
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+  }
+
+  const removeImage = (index: number) => {
+    setFormData({
+      ...formData,
+      images: formData.images.filter((_, i) => i !== index)
+    })
   }
 
   const addAmenity = () => {
@@ -101,19 +152,65 @@ export default function AddOnCampusPropertyPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Property Image
+              Property Images
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => {
-                // Handle image upload
-                console.log('Images:', e.target.files)
-              }}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-            <p className="text-sm text-gray-500 mt-1">Upload property images (multiple files allowed)</p>
+            <div className="space-y-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                capture="environment"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
+                >
+                  <Upload className="w-5 h-5" />
+                  Upload from Device
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (fileInputRef.current) {
+                      fileInputRef.current.setAttribute('capture', 'environment')
+                      fileInputRef.current.click()
+                    }
+                  }}
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
+                >
+                  <Camera className="w-5 h-5" />
+                  Take Photo
+                </button>
+              </div>
+              {formData.images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {formData.images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image}
+                        alt={`Property ${index + 1}`}
+                        className="w-full h-32 object-cover rounded-lg border border-gray-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 p-1 bg-red-600 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <p className="text-xs text-gray-500">
+                Upload property images or take photos using your camera
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

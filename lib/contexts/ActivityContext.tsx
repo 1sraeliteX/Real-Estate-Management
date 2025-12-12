@@ -1,15 +1,9 @@
 'use client'
 
 import { createContext, useContext, useState, useCallback, ReactNode, useEffect } from 'react'
+import { ActivityClient } from '@/lib/client/activityClient'
+import { Activity } from '@prisma/client'
 import Toast from '@/components/Toast'
-
-interface Activity {
-  id: string
-  type: 'added' | 'updated' | 'deleted'
-  category: 'property' | 'occupant' | 'room' | 'payment' | 'maintenance'
-  description: string
-  timestamp: string
-}
 
 interface ToastNotification {
   id: string
@@ -19,62 +13,66 @@ interface ToastNotification {
 
 interface ActivityContextType {
   activities: Activity[]
-  addActivity: (type: Activity['type'], category: Activity['category'], description: string) => void
+  addActivity: (type: string, category: string, description: string) => Promise<void>
   showToast: (message: string, type: ToastNotification['type']) => void
+  refreshActivities: () => Promise<void>
+  loading: boolean
 }
 
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined)
 
-const MAX_ACTIVITIES = 50
-
 export function ActivityProvider({ children }: { children: ReactNode }) {
   const [activities, setActivities] = useState<Activity[]>([])
   const [toasts, setToasts] = useState<ToastNotification[]>([])
+  const [loading, setLoading] = useState(false)
 
-  // Load activities from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem('recentActivities')
-    if (saved) {
-      try {
-        setActivities(JSON.parse(saved))
-      } catch (e) {
-        console.error('Failed to load activities:', e)
-      }
+  // Load activities from database on mount
+  const refreshActivities = useCallback(async () => {
+    try {
+      setLoading(true)
+      const fetchedActivities = await ActivityClient.getActivities(50)
+      setActivities(fetchedActivities)
+    } catch (error) {
+      console.error('Failed to load activities:', error)
+      showToast('Failed to load activities', 'error')
+    } finally {
+      setLoading(false)
     }
   }, [])
 
-  // Save activities to localStorage whenever they change
   useEffect(() => {
-    if (activities.length > 0) {
-      localStorage.setItem('recentActivities', JSON.stringify(activities))
-    }
-  }, [activities])
+    refreshActivities()
+  }, [refreshActivities])
 
-  const addActivity = useCallback((
-    type: Activity['type'],
-    category: Activity['category'],
+  const addActivity = useCallback(async (
+    type: string,
+    category: string,
     description: string
   ) => {
-    const newActivity: Activity = {
-      id: `${Date.now()}-${Math.random()}`,
-      type,
-      category,
-      description,
-      timestamp: new Date().toISOString()
-    }
+    try {
+      const activity = await ActivityClient.createActivity({
+        type: category,
+        title: `${category} ${type}`,
+        description,
+        metadata: { action: type, category }
+      })
 
-    setActivities(prev => {
-      const updated = [newActivity, ...prev]
-      return updated.slice(0, MAX_ACTIVITIES)
-    })
+      // Add to local state for immediate UI update
+      setActivities(prev => [activity, ...prev.slice(0, 49)])
 
-    // Auto-show toast notification
-    const actionEmoji = {
-      added: '✅',
-      updated: '✏️',
-      deleted: '🗑️'
+      // Auto-show toast notification
+      const actionEmoji = {
+        added: '✅',
+        created: '✅',
+        updated: '✏️',
+        deleted: '🗑️'
+      }
+      const emoji = actionEmoji[type as keyof typeof actionEmoji] || '📝'
+      showToast(`${emoji} ${description}`, 'success')
+    } catch (error) {
+      console.error('Failed to add activity:', error)
+      showToast('Failed to log activity', 'error')
     }
-    showToast(`${actionEmoji[type]} ${description}`, 'success')
   }, [])
 
   const showToast = useCallback((message: string, type: ToastNotification['type']) => {
@@ -91,7 +89,13 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <ActivityContext.Provider value={{ activities, addActivity, showToast }}>
+    <ActivityContext.Provider value={{ 
+      activities, 
+      addActivity, 
+      showToast, 
+      refreshActivities, 
+      loading 
+    }}>
       {children}
       {toasts.map(toast => (
         <Toast
