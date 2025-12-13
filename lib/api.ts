@@ -5,7 +5,7 @@ import { ErrorHandler, NetworkError } from './errorHandler'
 import { validateProperty, validateRoom, validateOccupant, validatePayment, validateMaintenanceRequest } from './validation'
 
 // Configure your API base URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api'
 const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true'
 
 const api = axios.create({
@@ -14,6 +14,7 @@ const api = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 10000, // 10 second timeout
+  withCredentials: true, // Include cookies for authentication
 })
 
 // Request interceptor - cookies are automatically included

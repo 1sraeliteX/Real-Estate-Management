@@ -12,8 +12,14 @@ export function validateProperty(data: Partial<Property>): { isValid: boolean; e
   if (!data.yearBuilt || data.yearBuilt < 1900 || data.yearBuilt > new Date().getFullYear()) {
     errors.push('Valid year built is required')
   }
-  if (data.parkingSpaces !== undefined && typeof data.parkingSpaces === 'number' && data.parkingSpaces < 0) {
-    errors.push('Parking spaces cannot be negative')
+  
+  // Validate parking spaces (can be number, 'yes', or 'no')
+  if (data.parkingSpaces !== undefined) {
+    if (typeof data.parkingSpaces === 'number' && data.parkingSpaces < 0) {
+      errors.push('Parking spaces cannot be negative')
+    } else if (typeof data.parkingSpaces === 'string' && !['yes', 'no'].includes(data.parkingSpaces)) {
+      errors.push('Parking spaces must be a number, "yes", or "no"')
+    }
   }
 
   // Lodge-specific validation
@@ -21,7 +27,9 @@ export function validateProperty(data: Partial<Property>): { isValid: boolean; e
     if (!data.numberOfRooms || data.numberOfRooms <= 0) errors.push('Number of rooms is required for lodges')
     if (!data.numberOfKitchens || data.numberOfKitchens <= 0) errors.push('Number of kitchens is required for lodges')
     if (!data.numberOfBathrooms || data.numberOfBathrooms <= 0) errors.push('Number of bathrooms is required for lodges')
-    if (!data.waterAvailability) errors.push('Water availability is required for lodges')
+    if (!data.waterAvailability || !['in-building', 'in-compound'].includes(data.waterAvailability)) {
+      errors.push('Water availability is required for lodges')
+    }
   }
 
   // Regular property validation
@@ -54,6 +62,9 @@ export function validateOccupant(data: Partial<RoomOccupant>): { isValid: boolea
   if (!data.nextOfKin?.trim()) errors.push('Next of kin is required')
   if (!data.nextOfKinPhone?.trim()) errors.push('Next of kin phone is required')
   if (!data.numberOfOccupants || data.numberOfOccupants <= 0) errors.push('Number of occupants must be greater than 0')
+  if (data.kitchenAccess && !['shared', 'private', 'none'].includes(data.kitchenAccess)) {
+    errors.push('Kitchen access must be shared, private, or none')
+  }
   if (!data.rentStartDate) errors.push('Rent start date is required')
   if (!data.rentExpiryDate) errors.push('Rent expiry date is required')
   if (!data.totalRent || data.totalRent <= 0) errors.push('Total rent must be greater than 0')

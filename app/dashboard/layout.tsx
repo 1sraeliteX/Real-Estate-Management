@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Bell, Search, User, ChevronRight, Settings } from 'lucide-react'
 import Sidebar from '@/components/Sidebar'
 import WelcomeGuide from '@/components/WelcomeGuide'
@@ -10,6 +11,17 @@ import MigrationHandler from '@/components/MigrationHandler'
 import { ActivityProvider } from '@/lib/contexts/ActivityContext'
 import { AuthClient } from '@/lib/client/authClient'
 import { useClickOutside } from '@/lib/hooks/useClickOutside'
+import { useNotifications } from '@/lib/hooks/useNotifications'
+
+interface UserProfile {
+  id: string
+  name: string | null
+  email: string
+  avatar?: string | null
+  phone?: string | null
+  company?: string | null
+  role?: string | null
+}
 
 export default function DashboardLayout({
   children,
@@ -21,8 +33,13 @@ export default function DashboardLayout({
   const [appName, setAppName] = useState('CornerStone Realty App')
   const [showUserMenu, setShowUserMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const pathname = usePathname()
   const router = useRouter()
+  
+  // Use notifications hook
+  const { notifications, unreadCount, markAsRead } = useNotifications()
 
   // Click outside handlers
   const mobileNotificationsRef = useClickOutside<HTMLDivElement>(() => {
@@ -42,23 +59,48 @@ export default function DashboardLayout({
   })
 
   useEffect(() => {
-    // Load app name from database
-    const loadAppName = async () => {
+    // Load user profile and app settings
+    const loadUserData = async () => {
       try {
+        setIsLoadingProfile(true)
+        
+        // Load current user profile
+        const currentUser = await AuthClient.getCurrentUser()
+        if (currentUser) {
+          setUserProfile({
+            id: currentUser.id,
+            name: currentUser.name || 'User',
+            email: currentUser.email,
+            avatar: currentUser.avatar,
+            phone: currentUser.phone,
+            company: currentUser.company,
+            role: currentUser.role
+          })
+        }
+
+        // Load app name from settings
         const userSettings = await AuthClient.getUserSettings()
         if (userSettings?.appName) {
           setAppName(userSettings.appName)
         }
       } catch (error) {
-        console.error('Failed to load app name:', error)
+        console.error('Failed to load user data:', error)
+        // Set fallback profile data
+        setUserProfile({
+          id: 'fallback',
+          name: 'Admin User',
+          email: 'admin@property.com'
+        })
+      } finally {
+        setIsLoadingProfile(false)
       }
     }
     
-    loadAppName()
+    loadUserData()
 
     // Listen for app name changes
     const handleAppNameChange = () => {
-      loadAppName()
+      loadUserData()
     }
 
     window.addEventListener('appNameChanged', handleAppNameChange)
@@ -109,6 +151,8 @@ export default function DashboardLayout({
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={() => setIsMobileSidebarOpen(false)}
         appName={appName}
+        userProfile={userProfile}
+        isLoadingProfile={isLoadingProfile}
       />
       
       <main className={`flex-1 w-full transition-all duration-300 ${
@@ -128,7 +172,15 @@ export default function DashboardLayout({
                 </svg>
               </button>
               
-              <h1 className="text-lg font-bold text-gray-900">{appName}</h1>
+              <div className="flex justify-center">
+                <Image 
+                  src="/corner2.png" 
+                  alt="CornerStone Realty App" 
+                  width={240} 
+                  height={72} 
+                  className="object-contain"
+                />
+              </div>
               
               <div className="flex items-center gap-2">
                 <div className="relative" ref={mobileNotificationsRef}>
@@ -141,7 +193,11 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell className="w-5 h-5 text-gray-700" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </button>
                   
                   {showNotifications && (
@@ -150,19 +206,41 @@ export default function DashboardLayout({
                         <h3 className="font-semibold text-gray-900">Notifications</h3>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
-                        <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                          <p className="text-sm font-medium text-gray-900">New payment received</p>
-                          <p className="text-xs text-gray-600 mt-1">John Doe paid ₦50,000</p>
-                          <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-                        </div>
-                        <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                          <p className="text-sm font-medium text-gray-900">Maintenance request</p>
-                          <p className="text-xs text-gray-600 mt-1">Room 101 - Plumbing issue</p>
-                          <p className="text-xs text-gray-400 mt-1">5 hours ago</p>
-                        </div>
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center">
+                            <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">No notifications yet</p>
+                          </div>
+                        ) : (
+                          notifications.map((notification) => (
+                            <div 
+                              key={notification.id}
+                              className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-l-4 ${
+                                !notification.isRead ? 'border-blue-500 bg-blue-50' : 'border-transparent'
+                              }`}
+                              onClick={() => {
+                                if (!notification.isRead) {
+                                  markAsRead(notification.id)
+                                }
+                              }}
+                            >
+                              <p className="text-sm font-medium text-gray-900">{notification.title}</p>
+                              <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {new Date(notification.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                          ))
+                        )}
                       </div>
                       <div className="px-4 py-2 border-t border-gray-200">
-                        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        <button 
+                          onClick={() => {
+                            router.push('/dashboard/notifications')
+                            setShowNotifications(false)
+                          }}
+                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        >
                           View all notifications
                         </button>
                       </div>
@@ -185,8 +263,22 @@ export default function DashboardLayout({
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2 z-50">
                       <div className="px-4 py-3 border-b border-gray-200">
-                        <p className="text-sm font-semibold text-gray-900">Admin User</p>
-                        <p className="text-xs text-gray-600 mt-1">admin@property.com</p>
+                        {isLoadingProfile ? (
+                          <div className="animate-pulse">
+                            <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-32"></div>
+                          </div>
+                        ) : userProfile ? (
+                          <>
+                            <p className="text-sm font-semibold text-gray-900">{userProfile.name}</p>
+                            <p className="text-xs text-gray-600 mt-1">{userProfile.email}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-semibold text-gray-900">Admin User</p>
+                            <p className="text-xs text-gray-600 mt-1">admin@property.com</p>
+                          </>
+                        )}
                       </div>
                       <button
                         onClick={() => {
@@ -287,7 +379,11 @@ export default function DashboardLayout({
                     aria-label="Notifications"
                   >
                     <Bell className="w-5 h-5 text-gray-700" />
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
                   </button>
                   
                   {showNotifications && (
@@ -296,19 +392,41 @@ export default function DashboardLayout({
                         <h3 className="font-semibold text-gray-900">Notifications</h3>
                       </div>
                       <div className="max-h-96 overflow-y-auto">
-                        <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                          <p className="text-sm font-medium text-gray-900">New payment received</p>
-                          <p className="text-xs text-gray-600 mt-1">John Doe paid ₦50,000</p>
-                          <p className="text-xs text-gray-400 mt-1">2 hours ago</p>
-                        </div>
-                        <div className="px-4 py-3 hover:bg-gray-50 cursor-pointer">
-                          <p className="text-sm font-medium text-gray-900">Maintenance request</p>
-                          <p className="text-xs text-gray-600 mt-1">Room 101 - Plumbing issue</p>
-                          <p className="text-xs text-gray-400 mt-1">5 hours ago</p>
-                        </div>
+                        {notifications.length === 0 ? (
+                          <div className="px-4 py-8 text-center">
+                            <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+                            <p className="text-sm text-gray-500">No notifications yet</p>
+                          </div>
+                        ) : (
+                          notifications.map((notification) => (
+                            <div 
+                              key={notification.id}
+                              className={`px-4 py-3 hover:bg-gray-50 cursor-pointer border-l-4 ${
+                                !notification.isRead ? 'border-blue-500 bg-blue-50' : 'border-transparent'
+                              }`}
+                              onClick={() => {
+                                if (!notification.isRead) {
+                                  markAsRead(notification.id)
+                                }
+                              }}
+                            >
+                              <p className="text-sm font-medium text-gray-900">{notification.title}</p>
+                              <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                {new Date(notification.createdAt).toLocaleString()}
+                              </p>
+                            </div>
+                          ))
+                        )}
                       </div>
                       <div className="px-4 py-2 border-t border-gray-200">
-                        <button className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        <button 
+                          onClick={() => {
+                            router.push('/dashboard/notifications')
+                            setShowNotifications(false)
+                          }}
+                          className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        >
                           View all notifications
                         </button>
                       </div>
@@ -325,17 +443,47 @@ export default function DashboardLayout({
                     }}
                     className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-100 transition-colors"
                   >
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-white" />
-                    </div>
-                    <span className="text-sm font-medium text-gray-700">Admin</span>
+                    {userProfile?.avatar ? (
+                      <img 
+                        src={userProfile.avatar} 
+                        alt="Profile" 
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                    )}
+                    {isLoadingProfile ? (
+                      <div className="animate-pulse">
+                        <div className="h-4 bg-gray-200 rounded w-16"></div>
+                      </div>
+                    ) : (
+                      <span className="text-sm font-medium text-gray-700">
+                        {userProfile?.name?.split(' ')[0] || 'Admin'}
+                      </span>
+                    )}
                   </button>
                   
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
                       <div className="px-4 py-3 border-b border-gray-200">
-                        <p className="text-sm font-semibold text-gray-900">Admin User</p>
-                        <p className="text-xs text-gray-600 mt-1">admin@property.com</p>
+                        {isLoadingProfile ? (
+                          <div className="animate-pulse">
+                            <div className="h-4 bg-gray-200 rounded w-24 mb-2"></div>
+                            <div className="h-3 bg-gray-200 rounded w-32"></div>
+                          </div>
+                        ) : userProfile ? (
+                          <>
+                            <p className="text-sm font-semibold text-gray-900">{userProfile.name}</p>
+                            <p className="text-xs text-gray-600 mt-1">{userProfile.email}</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-sm font-semibold text-gray-900">Admin User</p>
+                            <p className="text-xs text-gray-600 mt-1">admin@property.com</p>
+                          </>
+                        )}
                       </div>
                       <button
                         onClick={() => {

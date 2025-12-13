@@ -41,6 +41,7 @@ export interface RoomOccupant {
   nextOfKin: string
   nextOfKinPhone: string
   numberOfOccupants: number
+  kitchenAccess?: 'shared' | 'private' | 'none'
   rentStartDate: string
   rentExpiryDate: string
   totalRent: number

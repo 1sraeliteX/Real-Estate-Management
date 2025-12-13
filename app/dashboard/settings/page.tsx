@@ -1,20 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Save, Phone, Plus, X, Building2, Eye, EyeOff, Edit3 } from 'lucide-react'
+import { Plus, X, Building2, Edit3 } from 'lucide-react'
 import { SettingsClient } from '@/lib/client/settingsClient'
 import { AuthClient } from '@/lib/client/authClient'
 
 export default function SettingsPage() {
-  const [twilioSettings, setTwilioSettings] = useState({
-    accountSid: '',
-    authToken: '',
-    phoneNumber: '',
-    enabled: false,
-  })
 
-  const [saved, setSaved] = useState(false)
-  const [showAuthToken, setShowAuthToken] = useState(false)
   const [propertyTypes, setPropertyTypes] = useState<string[]>([
     'apartment',
     'house',
@@ -25,9 +17,7 @@ export default function SettingsPage() {
   ])
   const [newPropertyType, setNewPropertyType] = useState('')
   const [propertyTypesSaved, setPropertyTypesSaved] = useState(false)
-  const [appName, setAppName] = useState('Property Management')
-  const [isEditingAppName, setIsEditingAppName] = useState(false)
-  const [tempAppName, setTempAppName] = useState('')
+  const [appName, setAppName] = useState('Cornerstone Realty App')
   const [rentDueReminderDays, setRentDueReminderDays] = useState(30)
 
   useEffect(() => {
@@ -40,20 +30,10 @@ export default function SettingsPage() {
         // Load user settings from database
         const userSettings = await AuthClient.getUserSettings()
         if (userSettings) {
-          setAppName(userSettings.appName || 'Property Management')
+          setAppName(userSettings.appName || 'Cornerstone Realty App')
           setRentDueReminderDays(userSettings.rentDueReminderDays || 30)
         }
-        
-        // Load Twilio settings from database
-        const twilioData = await SettingsClient.getTwilioSettings()
-        if (twilioData) {
-          setTwilioSettings({
-            accountSid: twilioData.accountSid || '',
-            authToken: twilioData.authToken || '',
-            phoneNumber: twilioData.phoneNumber || '',
-            enabled: twilioData.isEnabled || false
-          })
-        }
+
       } catch (error) {
         console.error('Failed to load settings:', error)
       }
@@ -62,47 +42,6 @@ export default function SettingsPage() {
     loadSettings()
   }, [])
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
-    setTwilioSettings({
-      ...twilioSettings,
-      [name]: type === 'checkbox' ? checked : value
-    })
-  }
-
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault()
-    try {
-      await SettingsClient.updateTwilioSettings({
-        accountSid: twilioSettings.accountSid,
-        authToken: twilioSettings.authToken,
-        phoneNumber: twilioSettings.phoneNumber,
-        isEnabled: twilioSettings.enabled
-      })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    } catch (error) {
-      console.error('Failed to save Twilio settings:', error)
-      alert('Failed to save Twilio settings')
-    }
-  }
-
-  const handleSaveAppName = async () => {
-    if (tempAppName.trim()) {
-      try {
-        await AuthClient.updateUserSettings({
-          appName: tempAppName
-        })
-        setAppName(tempAppName)
-        setIsEditingAppName(false)
-        // Dispatch custom event to notify other components
-        window.dispatchEvent(new Event('appNameChanged'))
-      } catch (error) {
-        console.error('Failed to save app name:', error)
-        alert('Failed to save app name')
-      }
-    }
-  }
 
   const handleSaveReminderDays = async () => {
     try {
@@ -163,43 +102,9 @@ export default function SettingsPage() {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Current App Name
             </label>
-            {isEditingAppName ? (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={tempAppName}
-                  onChange={(e) => setTempAppName(e.target.value)}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter app name"
-                />
-                <button
-                  onClick={handleSaveAppName}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
-                >
-                  Save
-                </button>
-                <button
-                  onClick={() => setIsEditingAppName(false)}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-                >
-                  Cancel
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-between p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
-                <span className="text-lg font-semibold text-indigo-900">{appName}</span>
-                <button
-                  onClick={() => {
-                    setTempAppName(appName)
-                    setIsEditingAppName(true)
-                  }}
-                  className="flex items-center gap-2 px-3 py-1 text-sm text-indigo-600 hover:bg-indigo-100 rounded"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  Edit
-                </button>
-              </div>
-            )}
+            <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <span className="text-lg font-semibold text-indigo-900">{appName}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -304,117 +209,55 @@ export default function SettingsPage() {
           )}
         </div>
 
-        <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-purple-900 mb-2">Note:</h3>
-          <p className="text-sm text-purple-800">
-            Property types are used throughout the application when adding or filtering properties. 
-            Removing a type won't affect existing properties with that type.
-          </p>
-        </div>
-      </div>
-
-      {/* Twilio Integration */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 max-w-2xl">
-        <div className="flex items-center gap-3 mb-6">
-          <Phone className="w-6 h-6 text-blue-600" />
-          <h2 className="text-xl font-bold text-gray-900">Twilio Integration</h2>
-        </div>
-
-        <form onSubmit={handleSave} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Account SID
-            </label>
-            <input
-              type="text"
-              name="accountSid"
-              value={twilioSettings.accountSid}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Auth Token
-            </label>
-            <div className="relative">
-              <input
-                type={showAuthToken ? 'text' : 'password'}
-                name="authToken"
-                value={twilioSettings.authToken}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                placeholder="Your auth token"
-              />
-              <button
-                type="button"
-                onClick={() => setShowAuthToken(!showAuthToken)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showAuthToken ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
+        {/* Important Information with Color Hierarchy */}
+        <div className="mt-6 space-y-3">
+          {/* High Importance - Usage Information */}
+          <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">ℹ</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-blue-900 mb-1">Important Usage Information</h3>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  Property types are used throughout the application when adding or filtering properties.
+                </p>
+              </div>
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Twilio Phone Number
-            </label>
-            <input
-              type="tel"
-              name="phoneNumber"
-              value={twilioSettings.phoneNumber}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="+1234567890"
-            />
+          {/* Medium Importance - Safety Information */}
+          <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-lg shadow-sm">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">✓</span>
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-green-900 mb-1">Safe to Remove</h3>
+                <p className="text-sm text-green-800 leading-relaxed">
+                  Removing a type won't affect existing properties with that type.
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              name="enabled"
-              id="enabled"
-              checked={twilioSettings.enabled}
-              onChange={handleInputChange}
-              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="enabled" className="text-sm font-medium text-gray-700">
-              Enable Twilio Integration
-            </label>
+          {/* Low Importance - Additional Context */}
+          <div className="p-3 bg-gradient-to-r from-gray-50 to-slate-50 border-l-4 border-gray-400 rounded-lg">
+            <div className="flex items-start gap-3">
+              <div className="flex-shrink-0 w-5 h-5 bg-gray-400 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs">💡</span>
+              </div>
+              <div>
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  Changes take effect immediately across all property forms and filters.
+                </p>
+              </div>
+            </div>
           </div>
-
-          <div className="pt-4">
-            <button
-              type="submit"
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              <Save className="w-4 h-4" />
-              Save Settings
-            </button>
-            {saved && (
-              <p className="mt-2 text-sm text-green-600">Settings saved successfully!</p>
-            )}
-          </div>
-        </form>
-
-        <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-blue-900 mb-2">How to get Twilio credentials:</h3>
-          <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-            <li>Sign up for a Twilio account at twilio.com</li>
-            <li>Navigate to your Twilio Console Dashboard</li>
-            <li>Find your Account SID and Auth Token</li>
-            <li>Get a Twilio phone number from the Phone Numbers section</li>
-            <li>Enter the credentials above and enable the integration</li>
-          </ol>
         </div>
       </div>
+
+
     </div>
   )
 }

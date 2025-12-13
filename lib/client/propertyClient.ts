@@ -21,10 +21,11 @@ export interface PropertyData {
 }
 
 export class PropertyClient {
-  static async getProperties(type?: string, search?: string): Promise<Property[]> {
+  static async getProperties(type?: string, search?: string, includeStats?: boolean): Promise<{ properties: Property[], stats?: any }> {
     const params = new URLSearchParams()
     if (type) params.append('type', type)
     if (search) params.append('search', search)
+    if (includeStats) params.append('includeStats', 'true')
 
     const response = await fetch(`/api/properties?${params.toString()}`)
     
@@ -33,11 +34,14 @@ export class PropertyClient {
     }
 
     const data = await response.json()
-    return data.properties
+    return includeStats ? data : { properties: data.properties }
   }
 
-  static async getPropertyById(id: string): Promise<Property> {
-    const response = await fetch(`/api/properties/${id}`)
+  static async getPropertyById(id: string, includeRelations?: boolean): Promise<Property> {
+    const params = new URLSearchParams()
+    if (includeRelations) params.append('includeRelations', 'true')
+
+    const response = await fetch(`/api/properties/${id}?${params.toString()}`)
     
     if (!response.ok) {
       const error = await response.json()
@@ -107,5 +111,11 @@ export class PropertyClient {
 
     const data = await response.json()
     return data.stats
+  }
+
+  // Batch method to get properties with stats in one call
+  static async getPropertiesWithStats(type?: string, search?: string): Promise<{ properties: Property[], stats: any }> {
+    const data = await this.getProperties(type, search, true)
+    return data as { properties: Property[], stats: any }
   }
 }

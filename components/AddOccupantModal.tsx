@@ -28,6 +28,7 @@ export default function AddOccupantModal({
     nextOfKin: '',
     nextOfKinPhone: '',
     numberOfOccupants: '1',
+    kitchenAccess: '',
     rentStartDate: '',
     rentExpiryDate: '',
     totalRent: '',
@@ -38,9 +39,9 @@ export default function AddOccupantModal({
 
   if (!isOpen) return null
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     if (e.target.type === 'file') {
-      const file = e.target.files?.[0] || null
+      const file = (e.target as HTMLInputElement).files?.[0] || null
       setFormData({ ...formData, paymentProof: file })
     } else {
       setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -61,6 +62,7 @@ export default function AddOccupantModal({
       nextOfKin: formData.nextOfKin,
       nextOfKinPhone: formData.nextOfKinPhone,
       numberOfOccupants: parseInt(formData.numberOfOccupants),
+      kitchenAccess: formData.kitchenAccess as 'shared' | 'private' | 'none',
       rentStartDate: formData.rentStartDate,
       rentExpiryDate: formData.rentExpiryDate,
       totalRent,
@@ -78,6 +80,7 @@ export default function AddOccupantModal({
       nextOfKin: '',
       nextOfKinPhone: '',
       numberOfOccupants: '1',
+      kitchenAccess: '',
       rentStartDate: '',
       rentExpiryDate: '',
       totalRent: '',
@@ -196,6 +199,23 @@ export default function AddOccupantModal({
                 className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
               <p className="mt-1 text-sm text-gray-600">Total number of people living in this room</p>
+            </div>
+
+            <div>
+              <label className="block text-base font-bold text-gray-900 mb-2">🍳 Kitchen Access *</label>
+              <select
+                name="kitchenAccess"
+                required
+                value={formData.kitchenAccess}
+                onChange={handleInputChange}
+                className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Choose kitchen access...</option>
+                <option value="shared">Shared Kitchen</option>
+                <option value="private">Private Kitchen</option>
+                <option value="none">No Kitchen Access</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-600">Type of kitchen access for this occupant</p>
             </div>
 
             <div>

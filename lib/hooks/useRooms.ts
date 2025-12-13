@@ -7,7 +7,8 @@ export function useRooms() {
     queryKey: ['rooms'],
     queryFn: async () => {
       const response = await roomsApi.getAll()
-      return response.data
+      // Handle both mock API (response.data is array) and real API (response.data.rooms is array)
+      return Array.isArray(response.data) ? response.data : response.data.rooms || []
     },
   })
 }
@@ -17,7 +18,8 @@ export function usePropertyRooms(propertyId: string) {
     queryKey: ['rooms', 'property', propertyId],
     queryFn: async () => {
       const response = await roomsApi.getByProperty(propertyId)
-      return response.data
+      // Handle both mock API (response.data is array) and real API (response.data.rooms is array)
+      return Array.isArray(response.data) ? response.data : response.data.rooms || []
     },
     enabled: !!propertyId,
   })

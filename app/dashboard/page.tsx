@@ -76,17 +76,17 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <button
           onClick={() => router.push('/dashboard/finances')}
-          className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
+          className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
         >
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 flex items-center justify-center bg-green-600 rounded-full">
+            <div className="w-12 h-12 flex items-center justify-center bg-gradient-to-r from-emerald-600 to-teal-600 rounded-full">
               <span className="text-2xl font-bold text-white">₦</span>
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-green-900 mb-2">💰 Total Money Collected</h2>
-          <p className="text-green-700 text-base mb-4">All rent payments received</p>
+          <h2 className="text-2xl font-bold text-emerald-900 mb-2">💰 Total Money Collected</h2>
+          <p className="text-emerald-700 text-base mb-4">All rent payments received</p>
           <div className="flex items-center justify-between">
-            <span className="text-4xl font-bold text-green-900">
+            <span className="text-4xl font-bold text-emerald-900">
               ₦{stats.totalFinance.toLocaleString()}
             </span>
           </div>
@@ -94,15 +94,15 @@ export default function DashboardPage() {
 
         <button
           onClick={() => router.push('/dashboard/payments')}
-          className="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl border-2 border-orange-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
+          className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
         >
           <div className="flex items-center justify-between mb-4">
-            <AlertCircle className="w-12 h-12 text-orange-600" />
+            <AlertCircle className="w-12 h-12 text-amber-600" />
           </div>
-          <h2 className="text-2xl font-bold text-orange-900 mb-2">⏰ Money Still Owed</h2>
-          <p className="text-orange-700 text-base mb-4">Payments not yet received</p>
+          <h2 className="text-2xl font-bold text-amber-900 mb-2">⏰ Money Still Owed</h2>
+          <p className="text-amber-700 text-base mb-4">Payments not yet received</p>
           <div className="flex items-center justify-between">
-            <span className="text-4xl font-bold text-orange-900">
+            <span className="text-4xl font-bold text-amber-900">
               ₦{stats.pendingPayments.toLocaleString()}
             </span>
           </div>
@@ -113,7 +113,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <button
           onClick={() => router.push('/dashboard/properties')}
-          className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
+          className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
         >
           <div className="flex items-center justify-between mb-4">
             <Building2 className="w-12 h-12 text-blue-600" />
@@ -130,45 +130,45 @@ export default function DashboardPage() {
 
         <button
           onClick={() => router.push('/dashboard/occupants')}
-          className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
+          className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl border-2 border-slate-300 p-6 hover:shadow-xl transition-all cursor-pointer hover:scale-105 text-left"
         >
           <div className="flex items-center justify-between mb-4">
-            <Users className="w-12 h-12 text-purple-600" />
+            <Users className="w-12 h-12 text-slate-600" />
           </div>
-          <h2 className="text-2xl font-bold text-purple-900 mb-2">👥 My Tenants</h2>
-          <p className="text-purple-700 text-base mb-4">People living in my properties</p>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">👥 My Tenants</h2>
+          <p className="text-slate-700 text-base mb-4">People living in my properties</p>
           <div className="flex items-center justify-between">
-            <span className="text-4xl font-bold text-purple-900">
+            <span className="text-4xl font-bold text-slate-900">
               {stats.totalOccupants.toLocaleString()}
             </span>
-            <span className="text-base text-purple-600 font-semibold">Tenants</span>
+            <span className="text-base text-slate-600 font-semibold">Tenants</span>
           </div>
         </button>
       </div>
 
       {/* Room Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 p-6 shadow-md">
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 rounded-xl border-2 border-emerald-200 p-6 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-2xl font-bold text-green-900">✅ Rooms with People</h3>
-            <Bed className="w-10 h-10 text-green-600" />
+            <h3 className="text-2xl font-bold text-emerald-900">✅ Rooms with People</h3>
+            <Bed className="w-10 h-10 text-emerald-600" />
           </div>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-5xl font-bold text-green-900">{occupiedRooms}</span>
-            <span className="text-2xl text-green-700">out of {totalRooms}</span>
+            <span className="text-5xl font-bold text-emerald-900">{occupiedRooms}</span>
+            <span className="text-2xl text-emerald-700">out of {totalRooms}</span>
           </div>
-          <div className="w-full bg-green-200 rounded-full h-4 mt-4">
+          <div className="w-full bg-emerald-200 rounded-full h-4 mt-4">
             <div 
-              className="bg-green-600 h-4 rounded-full transition-all"
+              className="bg-gradient-to-r from-emerald-600 to-teal-600 h-4 rounded-full transition-all"
               style={{ width: `${totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0}%` }}
             />
           </div>
-          <p className="text-base text-green-700 mt-3 font-medium">
+          <p className="text-base text-emerald-700 mt-3 font-medium">
             {totalRooms > 0 ? ((occupiedRooms / totalRooms) * 100).toFixed(0) : 0}% of rooms are occupied
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 p-6 shadow-md">
+        <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border-2 border-blue-200 p-6 shadow-md">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-2xl font-bold text-blue-900">🔓 Empty Rooms</h3>
             <Bed className="w-10 h-10 text-blue-600" />
@@ -179,7 +179,7 @@ export default function DashboardPage() {
           </div>
           <div className="w-full bg-blue-200 rounded-full h-4 mt-4">
             <div 
-              className="bg-blue-600 h-4 rounded-full transition-all"
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 h-4 rounded-full transition-all"
               style={{ width: `${totalRooms > 0 ? (vacantRooms / totalRooms) * 100 : 0}%` }}
             />
           </div>
@@ -191,17 +191,17 @@ export default function DashboardPage() {
 
       {/* Property Type Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl border-2 border-purple-200 p-6 shadow-md">
+        <div className="bg-gradient-to-br from-slate-50 to-gray-50 rounded-xl border-2 border-slate-200 p-6 shadow-md">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-2xl font-bold text-purple-900">🏫 School Hostels</h3>
-            <Building2 className="w-10 h-10 text-purple-600" />
+            <h3 className="text-2xl font-bold text-slate-900">🏨 Lodges</h3>
+            <Building2 className="w-10 h-10 text-slate-600" />
           </div>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-5xl font-bold text-purple-900">{stats.onCampusCount}</span>
-            <span className="text-2xl text-purple-700">hostels</span>
+            <span className="text-5xl font-bold text-slate-900">{stats.onCampusCount}</span>
+            <span className="text-2xl text-slate-700">hostels</span>
           </div>
-          <p className="text-base text-purple-700 mt-3 font-medium">
-            Student lodges on campus
+          <p className="text-base text-slate-700 mt-3 font-medium">
+            Student accommodation facilities
           </p>
         </div>
 
@@ -286,22 +286,28 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="mt-8 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl border-2 border-gray-200 p-6 md:p-8 shadow-md">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">⚡ Quick Actions</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
           <button
             onClick={() => router.push('/dashboard/properties')}
-            className="px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            className="px-6 py-4 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:from-blue-700 hover:to-cyan-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
             🏠 View My Houses
           </button>
           <button
+            onClick={() => router.push('/dashboard/occupants')}
+            className="px-6 py-4 bg-gradient-to-r from-slate-600 to-gray-600 text-white rounded-xl hover:from-slate-700 hover:to-gray-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+          >
+            👥 View Occupants
+          </button>
+          <button
             onClick={() => router.push('/dashboard/finances')}
-            className="px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            className="px-6 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-700 hover:to-teal-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
             💰 Check Money
           </button>
           <button
             onClick={() => router.push('/dashboard/settings')}
-            className="px-6 py-4 bg-gray-600 text-white rounded-xl hover:bg-gray-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
+            className="px-6 py-4 bg-gradient-to-r from-amber-600 to-orange-600 text-white rounded-xl hover:from-amber-700 hover:to-orange-700 font-bold text-lg shadow-lg hover:shadow-xl transition-all hover:scale-105"
           >
             ⚙️ Settings
           </button>

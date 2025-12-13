@@ -24,6 +24,9 @@ export default function AddOffCampusPropertyPage() {
     bedrooms: '',
     bathrooms: '',
     kitchens: '',
+    numberOfRooms: '',
+    numberOfBathrooms: '',
+    waterAvailability: '',
     yearlyRent: '',
     description: '',
     amenities: [] as string[],
@@ -47,6 +50,22 @@ export default function AddOffCampusPropertyPage() {
     e.preventDefault()
     
     try {
+      // Validate lodge-specific fields
+      if (formData.type === 'lodge') {
+        if (!formData.numberOfRooms || parseInt(formData.numberOfRooms) <= 0) {
+          throw new Error('Number of rooms is required for lodges')
+        }
+        if (!formData.numberOfBathrooms || parseInt(formData.numberOfBathrooms) <= 0) {
+          throw new Error('Number of bathrooms is required for lodges')
+        }
+        if (!formData.kitchens || parseInt(formData.kitchens) <= 0) {
+          throw new Error('Number of kitchens is required for lodges')
+        }
+        if (!formData.waterAvailability) {
+          throw new Error('Water availability is required for lodges')
+        }
+      }
+
       // Create new property object
       const newProperty: Omit<Property, 'id'> = {
         name: formData.name,
@@ -54,11 +73,12 @@ export default function AddOffCampusPropertyPage() {
         type: formData.type as Property['type'],
         status: 'available',
         yearlyRent: parseInt(formData.yearlyRent),
-        bedrooms: parseInt(formData.bedrooms),
+        bedrooms: formData.type === 'lodge' ? 0 : parseInt(formData.bedrooms),
         bathrooms: parseInt(formData.bathrooms),
         numberOfKitchens: parseInt(formData.kitchens),
-        numberOfRooms: 0, // Not used for off-campus
-        numberOfBathrooms: parseInt(formData.bathrooms),
+        numberOfRooms: formData.type === 'lodge' ? parseInt(formData.numberOfRooms) : 0,
+        numberOfBathrooms: formData.type === 'lodge' ? parseInt(formData.numberOfBathrooms) : parseInt(formData.bathrooms),
+        waterAvailability: formData.type === 'lodge' ? formData.waterAvailability as 'in-building' | 'in-compound' : undefined,
         area: 0, // Not used for off-campus
         description: formData.description,
         amenities: formData.amenities,
@@ -176,7 +196,7 @@ export default function AddOffCampusPropertyPage() {
               onChange={(e) => setFormData({ ...formData, type: e.target.value })}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
             >
-              {propertyTypes.filter(t => t !== 'lodge').map(type => (
+              {propertyTypes.map(type => (
                 <option key={type} value={type} className="capitalize">
                   {type.charAt(0).toUpperCase() + type.slice(1)}
                 </option>
@@ -184,52 +204,123 @@ export default function AddOffCampusPropertyPage() {
             </select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bedrooms *
-              </label>
-              <input
-                type="number"
-                required
-                min="0"
-                value={formData.bedrooms}
-                onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
-                placeholder="e.g., 2"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
+          {formData.type === 'lodge' ? (
+            // Lodge-specific fields
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Rooms *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={formData.numberOfRooms}
+                    onChange={(e) => setFormData({ ...formData, numberOfRooms: e.target.value })}
+                    placeholder="e.g., 20"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bathrooms *
-              </label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={formData.bathrooms}
-                onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
-                placeholder="e.g., 2"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
-            </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Bathrooms *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={formData.numberOfBathrooms}
+                    onChange={(e) => setFormData({ ...formData, numberOfBathrooms: e.target.value })}
+                    placeholder="e.g., 10"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Kitchens *
-              </label>
-              <input
-                type="number"
-                required
-                min="0"
-                value={formData.kitchens}
-                onChange={(e) => setFormData({ ...formData, kitchens: e.target.value })}
-                placeholder="e.g., 1"
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Number of Kitchens *
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="1"
+                    value={formData.kitchens}
+                    onChange={(e) => setFormData({ ...formData, kitchens: e.target.value })}
+                    placeholder="e.g., 2"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Water Availability *
+                  </label>
+                  <select
+                    required
+                    value={formData.waterAvailability}
+                    onChange={(e) => setFormData({ ...formData, waterAvailability: e.target.value })}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  >
+                    <option value="">Select water availability</option>
+                    <option value="in-building">In-Building Water Supply</option>
+                    <option value="in-compound">In-Compound Water Supply</option>
+                  </select>
+                </div>
+              </div>
+            </>
+          ) : (
+            // Regular property fields
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bedrooms *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={formData.bedrooms}
+                  onChange={(e) => setFormData({ ...formData, bedrooms: e.target.value })}
+                  placeholder="e.g., 2"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Bathrooms *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  value={formData.bathrooms}
+                  onChange={(e) => setFormData({ ...formData, bathrooms: e.target.value })}
+                  placeholder="e.g., 2"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Kitchens *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="0"
+                  value={formData.kitchens}
+                  onChange={(e) => setFormData({ ...formData, kitchens: e.target.value })}
+                  placeholder="e.g., 1"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">

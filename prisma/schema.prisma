@@ -142,6 +142,15 @@ model Property {
   maintenanceRequests MaintenanceRequest[]
   user                User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
 
+  // Indexes for performance
+  @@index([type])
+  @@index([status])
+  @@index([userId])
+  @@index([isCustom])
+  @@index([createdAt])
+  @@index([name])
+  @@index([type, status])
+  @@index([userId, isCustom])
   @@map("properties")
 }
 
@@ -160,6 +169,10 @@ model Room {
   property  Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   occupants RoomOccupant[]
 
+  // Indexes for performance
+  @@index([propertyId])
+  @@index([status])
+  @@index([propertyId, status])
   @@map("rooms")
 }
 
@@ -171,6 +184,7 @@ model RoomOccupant {
   nextOfKin          String
   nextOfKinPhone     String
   numberOfOccupants  Int
+  kitchenAccess      String?
   rentStartDate      String
   rentExpiryDate     String
   totalRent          Int

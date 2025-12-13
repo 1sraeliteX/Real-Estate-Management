@@ -108,3 +108,23 @@ export class AuthenticationError extends Error {
     this.name = 'AuthenticationError'
   }
 }
+
+// API Error Handler for Next.js API routes
+export function handleApiError(error: unknown): Response {
+  const appError = ErrorHandler.handle(error)
+  ErrorHandler.logError(appError, 'API Route')
+  
+  return new Response(
+    JSON.stringify({
+      error: appError.message,
+      code: appError.code,
+      details: process.env.NODE_ENV === 'development' ? appError.details : undefined
+    }),
+    {
+      status: appError.statusCode || 500,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }
+  )
+}

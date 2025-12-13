@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { User, Mail, Phone, MapPin, Camera, Save, X } from 'lucide-react'
 import { AuthClient } from '@/lib/client/authClient'
 import Toast from '@/components/Toast'
+import QuickLogin from '@/components/QuickLogin'
 
 interface UserProfile {
   name: string
@@ -27,9 +28,47 @@ export default function ProfilePage() {
   const [editedProfile, setEditedProfile] = useState<UserProfile>(profile)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
   useEffect(() => {
     // Load profile from database
+    const loadProfile = async () => {
+      setIsLoading(true)
+      try {
+        const user = await AuthClient.getCurrentUser()
+        if (user) {
+          setIsAuthenticated(true)
+          const userProfile = {
+            name: user.name || 'Admin User',
+            email: user.email || 'admin@property.com',
+            phone: user.phone || '+234 800 000 0000',
+            address: user.address || 'Lagos, Nigeria',
+            role: user.role || 'Administrator',
+            avatar: user.avatar || undefined
+          }
+          setProfile(userProfile)
+          setEditedProfile(userProfile)
+          if (user.avatar) {
+            setAvatarPreview(user.avatar)
+          }
+        } else {
+          setIsAuthenticated(false)
+        }
+      } catch (error) {
+        console.error('Failed to load profile:', error)
+        setToast({ message: 'Failed to load profile', type: 'error' })
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    loadProfile()
+  }, [])
+
+  const handleLoginSuccess = () => {
+    setIsAuthenticated(true)
+    // Reload profile after successful login
     const loadProfile = async () => {
       try {
         const user = await AuthClient.getCurrentUser()
@@ -49,27 +88,60 @@ export default function ProfilePage() {
           }
         }
       } catch (error) {
-        console.error('Failed to load profile:', error)
-        setToast({ message: 'Failed to load profile', type: 'error' })
+        console.error('Failed to reload profile after login:', error)
       }
     }
     loadProfile()
-  }, [])
+  }
 
   const handleSave = async () => {
+    setIsSaving(true)
     try {
+      // Validate required fields
+      if (!editedProfile.name.trim()) {
+        setToast({ message: 'Name is required', type: 'error' })
+        setIsSaving(false)
+        return
+      }
+
+      // Check if user is authenticated
+      const currentUser = await AuthClient.getCurrentUser()
+      if (!currentUser) {
+        setToast({ message: 'Please log in to update your profile', type: 'error' })
+        setIsSaving(false)
+        return
+      }
+
+      // Optimistic update
+      const previousProfile = profile
+      setProfile(editedProfile)
+      
       await AuthClient.updateProfile({
         name: editedProfile.name,
         phone: editedProfile.phone,
         address: editedProfile.address,
         avatar: editedProfile.avatar
       })
-      setProfile(editedProfile)
+      
       setIsEditing(false)
       setToast({ message: 'Profile updated successfully!', type: 'success' })
     } catch (error) {
       console.error('Failed to update profile:', error)
-      setToast({ message: 'Failed to update profile', type: 'error' })
+      // Revert optimistic update on error
+      setProfile(profile)
+      setEditedProfile(profile)
+      
+      // Provide more specific error messages
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      if (errorMessage.includes('Not authenticated')) {
+        setToast({ message: 'Please log in to update your profile', type: 'error' })
+      } else if (errorMessage.includes('validation')) {
+        setToast({ message: 'Please check your input and try again', type: 'error' })
+      } else {
+        setToast({ message: 'Failed to update profile. Please try again.', type: 'error' })
+      }
+    } finally {
+      setIsSaving(false)
     }
   }
 
@@ -82,6 +154,18 @@ export default function ProfilePage() {
   const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setToast({ message: 'Image must be less than 5MB', type: 'error' })
+        return
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        setToast({ message: 'Please select an image file', type: 'error' })
+        return
+      }
+      
       const reader = new FileReader()
       reader.onloadend = () => {
         const result = reader.result as string
@@ -90,6 +174,33 @@ export default function ProfilePage() {
       }
       reader.readAsDataURL(file)
     }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-32"></div>
+          <div className="px-6 pb-6">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between -mt-16 mb-6">
+              <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 animate-pulse"></div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3"></div>
+                    <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -102,6 +213,10 @@ export default function ProfilePage() {
         />
       )}
 
+      {isAuthenticated === false && (
+        <QuickLogin onLoginSuccess={handleLoginSuccess} />
+      )}
+
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-32"></div>
@@ -110,11 +225,15 @@ export default function ProfilePage() {
           {/* Avatar Section */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between -mt-16 mb-6">
             <div className="relative">
-              <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden">
+              <div className="w-32 h-32 rounded-full border-4 border-white bg-white shadow-lg overflow-hidden transition-all duration-300">
                 {avatarPreview ? (
-                  <img src={avatarPreview} alt="Profile" className="w-full h-full object-cover" />
+                  <img 
+                    src={avatarPreview} 
+                    alt="Profile" 
+                    className="w-full h-full object-cover transition-opacity duration-300" 
+                  />
                 ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center transition-all duration-300">
                     <User className="w-16 h-16 text-white" />
                   </div>
                 )}
@@ -145,14 +264,16 @@ export default function ProfilePage() {
                 <div className="flex gap-2">
                   <button
                     onClick={handleSave}
-                    className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors"
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-6 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors"
                   >
-                    <Save className="w-4 h-4" />
-                    Save Changes
+                    <Save className={`w-4 h-4 ${isSaving ? 'animate-spin' : ''}`} />
+                    {isSaving ? 'Saving...' : 'Save Changes'}
                   </button>
                   <button
                     onClick={handleCancel}
-                    className="flex items-center gap-2 px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
+                    disabled={isSaving}
+                    className="flex items-center gap-2 px-6 py-2 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 disabled:cursor-not-allowed text-gray-700 rounded-lg font-medium transition-colors"
                   >
                     <X className="w-4 h-4" />
                     Cancel

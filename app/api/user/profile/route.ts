@@ -32,9 +32,13 @@ export async function GET(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    console.log('Profile update request received')
+    
     const user = await getAuthenticatedUser(request)
+    console.log('Authenticated user:', user ? { id: user.id, email: user.email } : 'null')
     
     if (!user) {
+      console.log('No authenticated user found')
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -42,13 +46,16 @@ export async function PUT(request: NextRequest) {
     }
 
     const profileData = await request.json()
+    console.log('Profile data to update:', profileData)
+    
     const updatedProfile = await UserService.updateUserProfile(user.id, profileData)
+    console.log('Profile updated successfully:', { id: updatedProfile.id, name: updatedProfile.name })
     
     return NextResponse.json({ profile: updatedProfile })
   } catch (error) {
     console.error('Update profile error:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }

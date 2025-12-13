@@ -1,13 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Home, MapPin, Bed, Bath, Square, Search, Plus, Edit2, Trash2, ArrowLeft } from 'lucide-react'
+import { Home, MapPin, Bed, Bath, Square, ChefHat, Search, Plus, Edit2, Trash2, ArrowLeft } from 'lucide-react'
 import StatsCard from '@/components/StatsCard'
 import { Property } from '@/types'
 import { useRouter } from 'next/navigation'
 import { useActivity } from '@/lib/contexts/ActivityContext'
 import { useProperties, useDeleteProperty } from '@/lib/hooks/useProperties'
+import { getPropertyTypes } from '@/lib/propertyTypes'
 import LoadingSpinner from '@/components/LoadingSpinner'
 
 export default function OffCampusPropertiesPage() {
@@ -16,11 +17,24 @@ export default function OffCampusPropertiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
+  const [propertyTypes, setPropertyTypes] = useState<string[]>([])
   
   const { data: allProperties = [], isLoading } = useProperties()
   const deleteProperty = useDeleteProperty((name) => {
     addActivity('deleted', 'property', `Deleted property: ${name}`)
   })
+
+  useEffect(() => {
+    const loadPropertyTypes = async () => {
+      try {
+        const types = await getPropertyTypes()
+        setPropertyTypes(types.filter(t => t !== 'lodge')) // Exclude lodge for off-campus
+      } catch (error) {
+        console.error('Failed to load property types:', error)
+      }
+    }
+    loadPropertyTypes()
+  }, [])
 
   const properties = allProperties.filter((p: any) => p.type !== 'lodge')
 
@@ -125,10 +139,11 @@ export default function OffCampusPropertiesPage() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
           >
             <option value="all">All Types</option>
-            <option value="apartment">Apartment</option>
-            <option value="house">House</option>
-            <option value="condo">Condo</option>
-            <option value="commercial">Commercial</option>
+            {propertyTypes.map(type => (
+              <option key={type} value={type} className="capitalize">
+                {type.charAt(0).toUpperCase() + type.slice(1)}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -175,24 +190,42 @@ export default function OffCampusPropertiesPage() {
                   <span className="text-sm leading-relaxed line-clamp-2">{property.address}</span>
                 </div>
 
-                <div className="flex items-center gap-4 text-sm text-gray-700 mb-5 bg-gray-50 rounded-lg p-3">
+                <div className="flex items-center gap-3 text-sm text-gray-700 mb-5 bg-gray-50 rounded-lg p-3">
                   <div className="flex items-center gap-1.5">
                     <div className="p-1.5 bg-purple-100 rounded-md">
                       <Bed className="w-4 h-4 text-purple-600" />
                     </div>
-                    <span className="font-medium">{property.bedrooms}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{property.bedrooms}</span>
+                      <span className="text-xs text-gray-500">Bedrooms</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="p-1.5 bg-purple-100 rounded-md">
                       <Bath className="w-4 h-4 text-purple-600" />
                     </div>
-                    <span className="font-medium">{property.bathrooms}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{property.bathrooms}</span>
+                      <span className="text-xs text-gray-500">Bathrooms</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="p-1.5 bg-purple-100 rounded-md">
+                      <ChefHat className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{property.numberOfKitchens || 0}</span>
+                      <span className="text-xs text-gray-500">Kitchens</span>
+                    </div>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="p-1.5 bg-purple-100 rounded-md">
                       <Square className="w-4 h-4 text-purple-600" />
                     </div>
-                    <span className="font-medium">{property.area}</span>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{property.area || 'N/A'}</span>
+                      <span className="text-xs text-gray-500">Sq ft</span>
+                    </div>
                   </div>
                 </div>
 
@@ -205,7 +238,7 @@ export default function OffCampusPropertiesPage() {
 
                 <div className="flex gap-2">
                   <button
-                    onClick={() => alert(`Edit property ${property.name}`)}
+                    onClick={() => router.push(`/dashboard/properties/edit-off-campus/${property.id}`)}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
                   >
                     <Edit2 className="w-4 h-4" />

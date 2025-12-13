@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Building2, Home, Sparkles } from 'lucide-react'
+import { Building2, Home } from 'lucide-react'
 import { useProperties } from '@/lib/hooks/useProperties'
 import { useRooms } from '@/lib/hooks/useRooms'
 import LoadingSpinner from '@/components/LoadingSpinner'
@@ -72,37 +72,7 @@ export default function FinancesPage() {
         </div>
       </div>
 
-      {/* Up Next Section */}
-      <div className="mt-12 bg-gradient-to-r from-amber-50 to-yellow-50 rounded-2xl border-2 border-amber-200 p-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
-            {/* Real Estate Logo in Golden Rectangle */}
-            <div className="bg-gradient-to-br from-amber-400 to-yellow-500 rounded-lg p-4 shadow-lg">
-              <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center">
-                <Building2 className="w-10 h-10 text-amber-600" />
-              </div>
-            </div>
-            
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <h3 className="text-2xl font-bold text-amber-900">Up Next - Cornerstone Pro</h3>
-                <Sparkles className="w-6 h-6 text-amber-600" />
-              </div>
-              <p className="text-amber-800 text-lg font-medium mb-2">
-                The Ultimate Property Management Hierarchy
-              </p>
-              <p className="text-amber-700 text-sm">
-                Based on user feedback to make user experience better
-              </p>
-            </div>
-          </div>
-          
-          <div className="text-right">
-            <div className="text-sm text-amber-600 font-medium mb-1">Coming Soon</div>
-            <div className="text-xs text-amber-500">Enhanced Features</div>
-          </div>
-        </div>
-      </div>
+
     </div>
   )
 }

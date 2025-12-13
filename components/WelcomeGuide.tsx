@@ -74,64 +74,73 @@ export default function WelcomeGuide() {
   const currentStep = steps[step]
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-lg w-full p-8 shadow-2xl">
-        <div className="flex justify-between items-start mb-6">
-          <div className={`p-4 rounded-full bg-${currentStep.color}-100`}>
-            {currentStep.icon}
+    <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-gradient-to-br from-white via-blue-50 to-purple-50 rounded-3xl max-w-lg w-full p-10 shadow-2xl border-4 border-gradient-to-r from-blue-400 to-purple-500 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-100/30 via-purple-100/30 to-pink-100/30 animate-pulse"></div>
+        <div className="relative z-10">
+          <div className="flex justify-between items-start mb-8">
+            <div className={`p-6 rounded-full bg-gradient-to-br from-${currentStep.color}-200 to-${currentStep.color}-300 shadow-xl transform hover:scale-110 transition-all duration-300 border-4 border-white/50`}>
+              {currentStep.icon}
+            </div>
+            <button onClick={handleClose} className="text-gray-400 hover:text-red-500 p-3 hover:bg-red-100 rounded-xl transition-all duration-300 transform hover:scale-110 hover:rotate-90">
+              <X className="w-7 h-7" />
+            </button>
           </div>
-          <button onClick={handleClose} className="text-gray-400 hover:text-gray-600 p-2">
-            <X className="w-6 h-6" />
+
+          <h2 className="text-4xl font-black text-gray-900 mb-6 leading-tight">
+            <span className="text-blue-900">
+              {currentStep.title}
+            </span>
+          </h2>
+          <p className="text-xl font-semibold text-gray-800 mb-10 leading-relaxed">{currentStep.description}</p>
+
+          {/* Progress dots */}
+          <div className="flex justify-center gap-3 mb-8">
+            {steps.map((_, index) => (
+              <div
+                key={index}
+                className={`h-4 rounded-full transition-all duration-300 ${
+                  index === step 
+                    ? 'w-12 bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg transform scale-110' 
+                    : 'w-4 bg-gray-300 hover:bg-gray-400'
+                }`}
+              />
+            ))}
+          </div>
+
+          <div className="flex gap-4">
+            {step > 0 && (
+              <button
+                onClick={() => setStep(step - 1)}
+                className="flex-1 px-8 py-5 border-4 border-gray-400 text-gray-700 rounded-2xl hover:bg-gray-100 hover:border-gray-500 font-black text-lg transform hover:scale-105 transition-all duration-300 shadow-lg"
+              >
+                ← Back
+              </button>
+            )}
+            {step < steps.length - 1 ? (
+              <button
+                onClick={() => setStep(step + 1)}
+                className="flex-1 px-8 py-5 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-700 text-white rounded-2xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-800 font-black text-lg shadow-2xl hover:shadow-blue-500/50 transform hover:scale-105 transition-all duration-300 border-4 border-white/20"
+              >
+                Next →
+              </button>
+            ) : (
+              <button
+                onClick={handleClose}
+                className="flex-1 px-8 py-5 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-700 text-white rounded-2xl hover:from-green-700 hover:via-emerald-700 hover:to-teal-800 font-black text-lg shadow-2xl hover:shadow-green-500/50 transform hover:scale-105 transition-all duration-300 border-4 border-white/20"
+              >
+                Get Started! 🚀
+              </button>
+            )}
+          </div>
+
+          <button
+            onClick={handleClose}
+            className="w-full mt-6 text-gray-600 hover:text-red-600 text-base font-bold bg-gray-100 hover:bg-red-100 py-3 rounded-xl transition-all duration-300 transform hover:scale-105"
+          >
+            Skip Tutorial
           </button>
         </div>
-
-        <h2 className="text-3xl font-bold text-gray-900 mb-4">{currentStep.title}</h2>
-        <p className="text-xl text-gray-700 mb-8 leading-relaxed">{currentStep.description}</p>
-
-        {/* Progress dots */}
-        <div className="flex justify-center gap-2 mb-6">
-          {steps.map((_, index) => (
-            <div
-              key={index}
-              className={`h-3 rounded-full transition-all ${
-                index === step ? 'w-8 bg-blue-600' : 'w-3 bg-gray-300'
-              }`}
-            />
-          ))}
-        </div>
-
-        <div className="flex gap-3">
-          {step > 0 && (
-            <button
-              onClick={() => setStep(step - 1)}
-              className="flex-1 px-6 py-4 border-2 border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 font-bold text-lg"
-            >
-              ← Back
-            </button>
-          )}
-          {step < steps.length - 1 ? (
-            <button
-              onClick={() => setStep(step + 1)}
-              className="flex-1 px-6 py-4 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold text-lg shadow-lg"
-            >
-              Next →
-            </button>
-          ) : (
-            <button
-              onClick={handleClose}
-              className="flex-1 px-6 py-4 bg-green-600 text-white rounded-xl hover:bg-green-700 font-bold text-lg shadow-lg"
-            >
-              Get Started! 🚀
-            </button>
-          )}
-        </div>
-
-        <button
-          onClick={handleClose}
-          className="w-full mt-4 text-gray-500 hover:text-gray-700 text-sm font-medium"
-        >
-          Skip Tutorial
-        </button>
       </div>
     </div>
   )

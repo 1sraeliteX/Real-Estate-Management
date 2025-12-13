@@ -3,9 +3,11 @@
 import { useState, useEffect } from 'react'
 import { Users, Plus, Search, DollarSign, ArrowLeft, Phone, MessageCircle, Trash2, Home, Calendar } from 'lucide-react'
 import AddOccupantModal from '@/components/AddOccupantModal'
-import { mockProperties, mockRooms } from '@/lib/mockApi'
 import { RoomOccupant, Room } from '@/types'
 import { useRouter } from 'next/navigation'
+import { useCreateOccupant, useDeleteOccupant } from '@/lib/hooks/useOccupants'
+import { useProperties } from '@/lib/hooks/useProperties'
+import { useRooms } from '@/lib/hooks/useRooms'
 
 export default function OnCampusOccupantsPage() {
   const router = useRouter()
@@ -13,33 +15,32 @@ export default function OnCampusOccupantsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProperty, setSelectedProperty] = useState<string>('all')
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>('all')
-  const [occupants, setOccupants] = useState<(RoomOccupant & { roomNumber: string; propertyName: string; propertyType: string; propertyId: string })[]>([])
-  const [availableRooms, setAvailableRooms] = useState<(Room & { propertyType: string })[]>([])
+  const { data: properties = [] } = useProperties()
+  const { data: rooms = [] } = useRooms()
+  const createOccupant = useCreateOccupant()
+  const deleteOccupant = useDeleteOccupant()
 
-  useEffect(() => {
-    const allOccupants = mockRooms
-      .filter(room => mockProperties.find(p => p.id === room.propertyId)?.type === 'lodge')
-      .flatMap(room => 
-        room.occupants.map(occupant => ({
-          ...occupant,
-          roomNumber: room.roomNumber,
-          propertyName: room.propertyName,
-          propertyId: room.propertyId,
-          propertyType: 'lodge'
-        }))
-      )
-    setOccupants(allOccupants)
+  // Filter for lodge properties (on-campus)
+  const lodgeProperties = properties.filter((p: any) => p.type === 'lodge')
+  const lodgeRooms = rooms.filter((room: any) => 
+    lodgeProperties.some((p: any) => p.id === room.propertyId)
+  )
 
-    const rooms = mockRooms
-      .filter(room => mockProperties.find(p => p.id === room.propertyId)?.type === 'lodge')
-      .map(room => ({
-        ...room,
-        propertyType: 'lodge'
-      }))
-    setAvailableRooms(rooms)
-  }, [])
+  // Get all occupants from lodge rooms
+  const occupants = lodgeRooms.flatMap((room: any) => 
+    room.occupants?.map((occupant: any) => ({
+      ...occupant,
+      roomNumber: room.roomNumber,
+      propertyName: room.propertyName,
+      propertyId: room.propertyId,
+      propertyType: 'lodge'
+    })) || []
+  )
 
-  const filteredOccupants = occupants.filter(occupant => {
+  // Available rooms for new occupants
+  const availableRooms = lodgeRooms.filter((room: any) => room.status === 'available')
+
+  const filteredOccupants = occupants.filter((occupant: any) => {
     const matchesSearch = occupant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       occupant.propertyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       occupant.roomNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -51,25 +52,24 @@ export default function OnCampusOccupantsPage() {
     return matchesSearch && matchesProperty && matchesPaymentStatus
   })
 
-  const handleAddOccupant = (newOccupant: Omit<RoomOccupant, 'id'>) => {
-    const room = availableRooms.find(r => r.id === newOccupant.roomId)
-    if (!room) return
-
-    const occupantWithDetails = {
-      ...newOccupant,
-      id: `o${Date.now()}`,
-      roomNumber: room.roomNumber,
-      propertyName: room.propertyName,
-      propertyId: room.propertyId,
-      propertyType: room.propertyType
+  const handleAddOccupant = async (newOccupant: Omit<RoomOccupant, 'id'>) => {
+    try {
+      await createOccupant.mutateAsync(newOccupant)
+      setIsModalOpen(false)
+    } catch (error) {
+      console.error('Failed to add occupant:', error)
+      alert('Failed to add tenant. Please try again.')
     }
-
-    setOccupants([...occupants, occupantWithDetails])
   }
 
-  const handleDeleteOccupant = (occupantId: string) => {
+  const handleDeleteOccupant = async (occupantId: string) => {
     if (!confirm('Are you sure you want to remove this occupant?')) return
-    setOccupants(occupants.filter(o => o.id !== occupantId))
+    try {
+      await deleteOccupant.mutateAsync(occupantId)
+    } catch (error) {
+      console.error('Failed to delete occupant:', error)
+      alert('Failed to remove tenant. Please try again.')
+    }
   }
 
   const handleWhatsApp = (phone: string) => {
@@ -82,16 +82,14 @@ export default function OnCampusOccupantsPage() {
 
   const stats = {
     total: filteredOccupants.length,
-    pendingPayments: filteredOccupants.filter(o => o.paymentStatus === 'pending').length
+    pendingPayments: filteredOccupants.filter((o: any) => o.paymentStatus === 'pending').length
   }
 
-  const uniqueProperties = Array.from(new Set(occupants.map(o => ({ id: o.propertyId, name: o.propertyName }))))
-    .reduce((acc, curr) => {
-      if (!acc.find(p => p.id === curr.id)) {
-        acc.push(curr)
-      }
-      return acc
-    }, [] as { id: string; name: string }[])
+  const uniqueProperties = occupants
+    .map((o: any) => ({ id: o.propertyId, name: o.propertyName }))
+    .filter((property: any, index: number, self: any[]) => 
+      index === self.findIndex((p: any) => p.id === property.id)
+    )
 
   return (
     <div className="min-h-screen p-4 md:p-6 lg:p-8">
@@ -162,7 +160,7 @@ export default function OnCampusOccupantsPage() {
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">All Properties</option>
-            {uniqueProperties.map(property => (
+            {uniqueProperties.map((property: any) => (
               <option key={property.id} value={property.id}>
                 {property.name}
               </option>
@@ -214,7 +212,7 @@ export default function OnCampusOccupantsPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredOccupants.map((occupant) => (
+                {filteredOccupants.map((occupant: any) => (
                   <tr key={occupant.id} className="hover:bg-gray-50">
                     <td className="px-4 md:px-6 py-4">
                       <div className="flex items-center">
@@ -226,6 +224,11 @@ export default function OnCampusOccupantsPage() {
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">{occupant.name}</div>
                           <div className="text-xs text-gray-500">{occupant.numberOfOccupants} person(s)</div>
+                          {occupant.kitchenAccess && (
+                            <div className="text-xs text-blue-600 mt-1">
+                              🍳 {occupant.kitchenAccess.charAt(0).toUpperCase() + occupant.kitchenAccess.slice(1)} Kitchen
+                            </div>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -303,7 +306,7 @@ export default function OnCampusOccupantsPage() {
         onClose={() => setIsModalOpen(false)}
         onAdd={handleAddOccupant}
         roomId=""
-        availableRooms={availableRooms.map(r => ({
+        availableRooms={availableRooms.map((r: any) => ({
           id: r.id,
           roomNumber: `${r.propertyName} - Room ${r.roomNumber}`,
           yearlyRent: r.yearlyRent

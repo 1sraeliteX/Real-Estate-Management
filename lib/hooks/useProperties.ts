@@ -7,7 +7,8 @@ export function useProperties() {
     queryKey: ['properties'],
     queryFn: async () => {
       const response = await propertiesApi.getAll()
-      return response.data
+      // Handle both mock API (response.data is array) and real API (response.data.properties is array)
+      return Array.isArray(response.data) ? response.data : response.data.properties || []
     },
   })
 }
@@ -27,17 +28,76 @@ export function useCreateProperty(onActivityLog?: (name: string) => void) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: Omit<Property, 'id'>) => propertiesApi.create(data),
+    mutationFn: async (data: Omit<Property, 'id'>) => {
+      // Validate data before sending
+      if (!data.name?.trim()) {
+        throw new Error('Property name is required')
+      }
+      if (!data.address?.trim()) {
+        throw new Error('Property address is required')
+      }
+      if (!data.yearlyRent || data.yearlyRent <= 0) {
+        throw new Error('Valid yearly rent is required')
+      }
+
+      // Ensure arrays are properly formatted
+      const formattedData = {
+        ...data,
+        amenities: Array.isArray(data.amenities) ? data.amenities : [],
+        images: Array.isArray(data.images) ? data.images : []
+      }
+
+      console.log('Creating property with data:', formattedData)
+      
+      try {
+        const response = await propertiesApi.create(formattedData)
+        console.log('Property created successfully:', response.data)
+        return response
+      } catch (error) {
+        console.error('Property creation failed:', error)
+        
+        // Enhanced error handling
+        if (error && typeof error === 'object' && 'response' in error) {
+          const axiosError = error as any
+          if (axiosError.response?.data?.details) {
+            console.error('Error details:', axiosError.response.data.details)
+          }
+        }
+        
+        throw error
+      }
+    },
     onSuccess: (response, variables) => {
+      console.log('Property creation mutation succeeded')
+      
       // Invalidate and refetch properties list
       queryClient.invalidateQueries({ queryKey: ['properties'] })
       // Also invalidate dashboard stats
       queryClient.invalidateQueries({ queryKey: ['stats'] })
+      
       // Log activity
       if (onActivityLog) {
         onActivityLog(variables.name)
       }
     },
+    onError: (error, variables) => {
+      console.error('Property creation mutation failed:', error)
+      console.error('Failed data:', variables)
+      
+      // You can add toast notifications here
+      // toast.error(error.message || 'Failed to create property')
+    },
+    retry: (failureCount, error) => {
+      // Don't retry validation errors
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as any
+        if (axiosError.response?.status === 400) {
+          return false
+        }
+      }
+      // Retry network errors up to 2 times
+      return failureCount < 2
+    }
   })
 }
 
