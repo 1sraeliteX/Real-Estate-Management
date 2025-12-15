@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/database'
 import { validateOccupant } from '@/lib/validation'
 import { AuthService } from '@/lib/services/authService'
+import { RoomAssignmentService } from '@/lib/services/roomAssignmentService'
 
 export async function GET(request: NextRequest) {
   try {
@@ -53,27 +54,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current user for assignment tracking
-    const token = request.cookies.get('auth-token')?.value
+    const token = request.cookies.get('session')?.value
     const currentUser = token ? await AuthService.validateSession(token) : null
-    const assignedBy = currentUser?.id
+    const assignedBy = currentUser?.id || 'system'
 
-    // Check if room exists and has capacity
-    const room = await prisma.room.findUnique({
-      where: { id: occupantData.roomId },
-      include: { property: true }
-    })
+    // Check room availability using the service
+    const availability = await RoomAssignmentService.checkRoomAvailability(
+      occupantData.roomId, 
+      occupantData.numberOfOccupants
+    )
 
-    if (!room) {
+    if (!availability.available) {
       return NextResponse.json(
-        { error: 'Room not found' },
-        { status: 404 }
-      )
-    }
-
-    // Check room capacity
-    if (room.currentOccupants + occupantData.numberOfOccupants > room.maxOccupants) {
-      return NextResponse.json(
-        { error: 'Room capacity exceeded' },
+        { error: availability.reason || 'Room not available for assignment' },
         { status: 400 }
       )
     }
@@ -102,29 +95,49 @@ export async function POST(request: NextRequest) {
         idNumber: occupantData.idNumber || '',
         issues: JSON.stringify(occupantData.issues || []),
         notes: JSON.stringify(occupantData.notes || []),
-        assignedBy: assignedBy || 'system'
+        assignedBy: assignedBy,
+        moveInDate: occupantData.rentStartDate
       }
     })
 
-    // Update room occupancy
-    await prisma.room.update({
-      where: { id: occupantData.roomId },
-      data: {
-        currentOccupants: room.currentOccupants + occupantData.numberOfOccupants,
-        status: room.currentOccupants + occupantData.numberOfOccupants >= room.maxOccupants ? 'occupied' : 'available'
-      }
+    // Update room occupancy using the service
+    await RoomAssignmentService.updateRoomOccupancy(occupantData.roomId)
+
+    // Log the assignment history
+    await RoomAssignmentService.logRoomAssignmentHistory({
+      roomId: occupantData.roomId,
+      occupantId: occupant.id,
+      action: 'assigned',
+      assignedBy: assignedBy,
+      reason: 'New tenant registration',
+      notes: `Tenant ${occupant.name} assigned to room`,
+      effectiveDate: new Date().toISOString()
     })
+
+    const result = occupant
 
     // Transform JSON strings back to arrays for frontend response
-    const result = {
-      ...occupant,
-      issues: JSON.parse(occupant.issues),
-      notes: JSON.parse(occupant.notes)
+    const transformedResult = {
+      ...result,
+      issues: JSON.parse(result.issues),
+      notes: JSON.parse(result.notes)
     }
 
-    return NextResponse.json({ occupant: result })
+    return NextResponse.json({ 
+      occupant: transformedResult,
+      message: 'Tenant successfully assigned to room'
+    })
   } catch (error) {
     console.error('Create occupant error:', error)
+    
+    // Handle specific database constraint errors
+    if (error instanceof Error && error.message.includes('Unique constraint')) {
+      return NextResponse.json(
+        { error: 'This room assignment conflicts with existing data. Please refresh and try again.' },
+        { status: 409 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to add tenant. Please try again.', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }

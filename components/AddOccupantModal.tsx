@@ -128,14 +128,14 @@ export default function AddOccupantModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {showRoomSelector && availableRooms.length > 0 && (
               <div className="md:col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <label className="block text-base font-bold text-gray-900 mb-2">🏠 Select Property & Room *</label>
+                <label className="block text-base font-bold text-gray-900 mb-2">🏠 Select Available Room *</label>
                 <select
                   value={formData.roomId}
                   onChange={handleRoomChange}
                   required
                   className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">Choose a property and room...</option>
+                  <option value="">Choose an available room...</option>
                   {availableRooms.map(room => (
                     <option key={room.id} value={room.id}>
                       {room.propertyName} - Room {room.roomNumber} - ₦{room.yearlyRent.toLocaleString()}/year
@@ -144,7 +144,17 @@ export default function AddOccupantModal({
                   ))}
                 </select>
                 <p className="mt-2 text-sm text-gray-600">
-                  Select the property and specific room number for this tenant
+                  Only rooms with available capacity are shown. Once assigned, the room status will automatically update.
+                </p>
+              </div>
+            )}
+            
+            {showRoomSelector && availableRooms.length === 0 && (
+              <div className="md:col-span-2 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                <p className="text-yellow-800 font-medium">⚠️ No Available Rooms</p>
+                <p className="text-sm text-yellow-700 mt-1">
+                  All rooms are currently occupied or no rooms have been configured for properties yet. 
+                  Please configure rooms for your properties or wait for existing tenants to move out.
                 </p>
               </div>
             )}

@@ -193,6 +193,81 @@ export class PropertyService {
     }
   }
 
+  static async createPropertyWithRooms(propertyData: PropertyData, rooms?: any[]): Promise<Property> {
+    // Transform arrays to JSON strings for database storage
+    const transformedData = {
+      ...propertyData,
+      amenities: Array.isArray(propertyData.amenities) 
+        ? JSON.stringify(propertyData.amenities) 
+        : propertyData.amenities,
+      images: Array.isArray(propertyData.images) 
+        ? JSON.stringify(propertyData.images) 
+        : propertyData.images,
+      parkingSpaces: typeof propertyData.parkingSpaces === 'number' 
+        ? propertyData.parkingSpaces.toString() 
+        : propertyData.parkingSpaces,
+      isCustom: true, // User-created properties are custom
+      // Only include userId if it's provided and not null/undefined
+      ...(propertyData.userId && { userId: propertyData.userId })
+    }
+
+    // Remove userId from transformedData if it's null, undefined, or empty string
+    if (!transformedData.userId) {
+      delete transformedData.userId
+    }
+
+    // Create property with rooms in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create the property first
+      const property = await tx.property.create({
+        data: transformedData
+      })
+
+      // Create rooms if provided
+      if (rooms && Array.isArray(rooms) && rooms.length > 0) {
+        const roomsToCreate = rooms.map((room: any) => ({
+          propertyId: property.id,
+          propertyName: property.name,
+          roomNumber: room.roomNumber,
+          status: 'available',
+          yearlyRent: room.yearlyRent,
+          maxOccupants: room.maxOccupants || 1,
+          currentOccupants: 0,
+          roomType: room.roomType,
+          amenities: JSON.stringify(room.amenities || []),
+          floor: room.floor,
+          size: room.size,
+          hasPrivateBath: room.hasPrivateBath || false,
+          hasKitchen: room.hasKitchen || false
+        }))
+
+        await tx.room.createMany({
+          data: roomsToCreate
+        })
+      }
+
+      // Return property with rooms
+      return await tx.property.findUnique({
+        where: { id: property.id },
+        include: {
+          rooms: {
+            orderBy: { roomNumber: 'asc' }
+          }
+        }
+      })
+    })
+
+    // Invalidate relevant caches
+    this.invalidatePropertyCaches(propertyData.userId)
+
+    // Transform JSON strings back to arrays for frontend response
+    return {
+      ...result!,
+      amenities: this.parseJsonField(result!.amenities, []),
+      images: this.parseJsonField(result!.images, [])
+    }
+  }
+
   static async updateProperty(id: string, propertyData: Partial<PropertyData>): Promise<Property> {
     // Get existing property to know userId for cache invalidation
     const existingProperty = await prisma.property.findUnique({

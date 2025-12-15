@@ -66,6 +66,31 @@ export default function PropertyDetailPage() {
       setRooms(rooms.filter(room => room.id !== roomId))
     }
   }
+  const handleEditRoom = async (roomData: any) => {
+    try {
+      const response = await fetch(`/api/rooms/${roomData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roomData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update room');
+      }
+      
+      // Update local state
+      setRooms(rooms.map(room => 
+        room.id === roomData.id ? { ...room, ...roomData } : room
+      ));
+      console.log('Room updated successfully');
+    } catch (error) {
+      console.error('Error updating room:', error);
+      alert('Failed to update room. Please try again.');
+    }
+  }
+
 
   const handleDeleteOccupant = (roomId: string, occupantId: string) => {
     if (confirm('Are you sure you want to remove this occupant?')) {
@@ -266,52 +291,72 @@ export default function PropertyDetailPage() {
                   </div>
                 </>
               )}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
+              <div className="property-details-grid">
                 {property.type === 'lodge' && (
                   <>
-                    <div>
-                      <span className="text-gray-500">Rooms:</span>
-                      <span className="ml-2 font-semibold">{property.numberOfRooms}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value">{property.numberOfRooms}</span>
+                        <span className="property-detail-label">Rooms</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Kitchens:</span>
-                      <span className="ml-2 font-semibold">{property.numberOfKitchens}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value">{property.numberOfKitchens}</span>
+                        <span className="property-detail-label">Kitchens</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Bathrooms:</span>
-                      <span className="ml-2 font-semibold">{property.numberOfBathrooms}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value">{property.numberOfBathrooms}</span>
+                        <span className="property-detail-label">Bathrooms</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Water:</span>
-                      <span className="ml-2 font-semibold capitalize">{property.waterAvailability}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value capitalize">{property.waterAvailability}</span>
+                        <span className="property-detail-label">Water</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Parking:</span>
-                      <span className="ml-2 font-semibold">{property.parkingSpaces}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value">{property.parkingSpaces}</span>
+                        <span className="property-detail-label">Parking</span>
+                      </div>
                     </div>
                   </>
                 )}
                 {property.type !== 'lodge' && (
                   <>
-                    <div>
-                      <span className="text-gray-500">Type:</span>
-                      <span className="ml-2 font-semibold capitalize">{property.type}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value capitalize">{property.type}</span>
+                        <span className="property-detail-label">Type</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Bedrooms:</span>
-                      <span className="ml-2 font-semibold">{property.bedrooms}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value">{property.bedrooms}</span>
+                        <span className="property-detail-label">Bedrooms</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Bathrooms:</span>
-                      <span className="ml-2 font-semibold">{property.bathrooms}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value">{property.bathrooms}</span>
+                        <span className="property-detail-label">Bathrooms</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Area:</span>
-                      <span className="ml-2 font-semibold">{property.area} sq ft</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value">{property.area} sq ft</span>
+                        <span className="property-detail-label">Area</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Status:</span>
-                      <span className="ml-2 font-semibold capitalize">{property.status}</span>
+                    <div className="property-detail-item">
+                      <div className="property-detail-content">
+                        <span className="property-detail-value capitalize">{property.status}</span>
+                        <span className="property-detail-label">Status</span>
+                      </div>
                     </div>
                   </>
                 )}
@@ -433,7 +478,10 @@ export default function PropertyDetailPage() {
                         )}
                         <div className="flex gap-2">
                           <button
-                            onClick={() => alert(`Edit room ${room.roomNumber}`)}
+                            onClick={() => {
+                              setEditingRoom(room)
+                              setIsEditRoomModalOpen(true)
+                            }}
                             className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-xs text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
                             title="Edit room"
                           >
@@ -752,6 +800,16 @@ export default function PropertyDetailPage() {
         }))}
         showRoomSelector={!selectedRoomId}
       />
-    </div>
+    
+      <EditRoomModal
+        isOpen={isEditRoomModalOpen}
+        onClose={() => {
+          setIsEditRoomModalOpen(false)
+          setEditingRoom(null)
+        }}
+        room={editingRoom}
+        onSave={handleEditRoom}
+      />
+</div>
   )
 }

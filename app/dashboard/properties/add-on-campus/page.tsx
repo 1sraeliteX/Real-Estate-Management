@@ -8,6 +8,7 @@ import { getPropertyTypes } from '@/lib/propertyTypes'
 import { useActivity } from '@/lib/contexts/ActivityContext'
 import { useCreateProperty } from '@/lib/hooks/useProperties'
 import { Property } from '@/types'
+import RoomManagement from '@/components/RoomManagement'
 
 export default function AddOnCampusPropertyPage() {
   const router = useRouter()
@@ -31,6 +32,8 @@ export default function AddOnCampusPropertyPage() {
     images: [] as string[],
   })
   const [newAmenity, setNewAmenity] = useState('')
+  const [rooms, setRooms] = useState<any[]>([])
+  const [showRoomManagement, setShowRoomManagement] = useState(false)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -97,8 +100,14 @@ export default function AddOnCampusPropertyPage() {
         parkingSpaces: 'yes',
       }
 
-      console.log('Submitting property:', newProperty)
-      await createProperty.mutateAsync(newProperty)
+      // Prepare the payload with rooms
+      const payload = {
+        ...newProperty,
+        rooms: rooms.length > 0 ? rooms : undefined
+      }
+
+      console.log('Submitting property with rooms:', payload)
+      await createProperty.mutateAsync(payload)
       
       // Success - redirect to properties page
       router.push('/dashboard/properties')
@@ -396,7 +405,7 @@ export default function AddOnCampusPropertyPage() {
                 type="text"
                 value={newAmenity}
                 onChange={(e) => setNewAmenity(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
+                onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addAmenity())}
                 placeholder="e.g., WiFi, Study Room, Laundry"
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
@@ -426,6 +435,49 @@ export default function AddOnCampusPropertyPage() {
                     </button>
                   </span>
                 ))}
+              </div>
+            )}
+          </div>
+
+          {/* Room Management Section */}
+          <div className="border-t border-gray-200 pt-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Room Configuration</h3>
+                <p className="text-sm text-gray-600">Define individual rooms for better tenant management</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRoomManagement(!showRoomManagement)}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 flex items-center gap-2"
+              >
+                {showRoomManagement ? 'Hide' : 'Configure'} Rooms
+              </button>
+            </div>
+            
+            {showRoomManagement && (
+              <div className="bg-gray-50 p-6 rounded-lg border border-gray-200">
+                <RoomManagement
+                  rooms={rooms}
+                  onRoomsChange={setRooms}
+                  propertyType={formData.type}
+                />
+                {rooms.length > 0 && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-sm text-blue-800">
+                      ✅ {rooms.length} room{rooms.length > 1 ? 's' : ''} configured. 
+                      These rooms will be available for tenant assignment once the property is created.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {!showRoomManagement && rooms.length > 0 && (
+              <div className="bg-green-50 p-3 rounded-lg border border-green-200">
+                <p className="text-sm text-green-800">
+                  ✅ {rooms.length} room{rooms.length > 1 ? 's' : ''} configured
+                </p>
               </div>
             )}
           </div>

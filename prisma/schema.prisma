@@ -161,7 +161,9 @@ model Room {
   id              String   @id @default(cuid())
   propertyId      String
   propertyName    String
-  roomNumber      String
+  roomPrefix      String   // Room prefix (e.g., "A", "B", "RM")
+  roomNumber      String   // Room number (e.g., "101", "03")
+  roomIdentifier  String   // Full room identifier (e.g., "A-101", "RM-03")
   status          String   // 'available', 'occupied', 'maintenance', 'reserved'
   yearlyRent      Int
   maxOccupants    Int      @default(1)  // Maximum number of occupants allowed
@@ -181,11 +183,9 @@ model Room {
   property  Property       @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   occupants RoomOccupant[]
 
-  // Indexes for performance
-  @@index([propertyId])
-  @@index([status])
-  @@index([propertyId, status])
-  @@index([maxOccupants, currentOccupants])
+  // Unique constraint to prevent duplicate room identifiers per property
+  @@unique([propertyId, roomIdentifier])
+  
   @@map("rooms")
 }
 

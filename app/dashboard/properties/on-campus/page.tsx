@@ -166,31 +166,31 @@ export default function OnCampusPropertiesPage() {
                 </div>
 
                 <div className="flex items-center gap-4 text-sm text-gray-700 mb-5 bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1.5 bg-blue-100 rounded-md">
+                  <div className="property-detail-item">
+                    <div className="p-1.5 bg-blue-100 rounded-md flex-shrink-0">
                       <Building2 className="w-4 h-4 text-blue-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{property.numberOfRooms}</span>
-                      <span className="text-xs text-gray-500">Rooms</span>
+                    <div className="property-detail-content">
+                      <span className="property-detail-value">{property.numberOfRooms}</span>
+                      <span className="property-detail-label">Rooms</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1.5 bg-blue-100 rounded-md">
+                  <div className="property-detail-item">
+                    <div className="p-1.5 bg-blue-100 rounded-md flex-shrink-0">
                       <Bath className="w-4 h-4 text-blue-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{property.numberOfBathrooms}</span>
-                      <span className="text-xs text-gray-500">Bathrooms</span>
+                    <div className="property-detail-content">
+                      <span className="property-detail-value">{property.numberOfBathrooms}</span>
+                      <span className="property-detail-label">Bathrooms</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1.5 bg-blue-100 rounded-md">
+                  <div className="property-detail-item">
+                    <div className="p-1.5 bg-blue-100 rounded-md flex-shrink-0">
                       <ChefHat className="w-4 h-4 text-blue-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{property.numberOfKitchens || 0}</span>
-                      <span className="text-xs text-gray-500">Kitchens</span>
+                    <div className="property-detail-content">
+                      <span className="property-detail-value">{property.numberOfKitchens || 0}</span>
+                      <span className="property-detail-label">Kitchens</span>
                     </div>
                   </div>
                 </div>

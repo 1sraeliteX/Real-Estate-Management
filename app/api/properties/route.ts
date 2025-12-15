@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
     const token = request.cookies.get('session')?.value
     const user = token ? await AuthService.validateSession(token) : null
 
-    const propertyData = await request.json()
+    const { rooms, ...propertyData } = await request.json()
     
     // Validate property data
     const validation = validateProperty(propertyData)
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       ...(user?.id && { userId: user.id }) // Only include userId if user exists
     }
     
-    const property = await PropertyService.createProperty(createData)
+    const property = await PropertyService.createPropertyWithRooms(createData, rooms)
 
     // Log activity if user is authenticated
     if (user) {

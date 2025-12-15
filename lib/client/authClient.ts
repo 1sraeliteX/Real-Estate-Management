@@ -16,8 +16,8 @@ export class AuthClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Login failed')
+      const error = await response.json().catch(() => ({}))
+      throw new Error((error as any)?.error || 'Login failed')
     }
 
     return await response.json()
@@ -59,8 +59,8 @@ export class AuthClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Profile update failed')
+      const error = await response.json().catch(() => ({}))
+      throw new Error((error as any)?.error || 'Profile update failed')
     }
 
     const data = await response.json()
@@ -71,8 +71,8 @@ export class AuthClient {
     const response = await fetch('/api/user/settings')
     
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Failed to get settings')
+      const error = await response.json().catch(() => ({}))
+      throw new Error((error as any)?.error || 'Failed to get settings')
     }
 
     const data = await response.json()
@@ -89,8 +89,8 @@ export class AuthClient {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Settings update failed')
+      const error = await response.json().catch(() => ({}))
+      throw new Error((error as any)?.error || 'Settings update failed')
     }
 
     const data = await response.json()

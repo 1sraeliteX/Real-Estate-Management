@@ -196,41 +196,41 @@ export default function OffCampusPropertiesPage() {
                   <span className="text-sm leading-relaxed line-clamp-2">{property.address}</span>
                 </div>
 
-                <div className="flex items-center gap-3 text-sm text-gray-700 mb-5 bg-gray-50 rounded-lg p-3">
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1.5 bg-purple-100 rounded-md">
+                <div className="property-details-grid text-sm text-gray-700 mb-5 bg-gray-50 rounded-lg p-3">
+                  <div className="property-detail-item">
+                    <div className="p-1.5 bg-purple-100 rounded-md flex-shrink-0">
                       <Bed className="w-4 h-4 text-purple-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{property.bedrooms}</span>
-                      <span className="text-xs text-gray-500">Bedrooms</span>
+                    <div className="property-detail-content">
+                      <span className="property-detail-value">{property.bedrooms}</span>
+                      <span className="property-detail-label">Bedrooms</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1.5 bg-purple-100 rounded-md">
+                  <div className="property-detail-item">
+                    <div className="p-1.5 bg-purple-100 rounded-md flex-shrink-0">
                       <Bath className="w-4 h-4 text-purple-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{property.bathrooms}</span>
-                      <span className="text-xs text-gray-500">Bathrooms</span>
+                    <div className="property-detail-content">
+                      <span className="property-detail-value">{property.bathrooms}</span>
+                      <span className="property-detail-label">Bathrooms</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1.5 bg-purple-100 rounded-md">
+                  <div className="property-detail-item">
+                    <div className="p-1.5 bg-purple-100 rounded-md flex-shrink-0">
                       <ChefHat className="w-4 h-4 text-purple-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{property.numberOfKitchens || 0}</span>
-                      <span className="text-xs text-gray-500">Kitchens</span>
+                    <div className="property-detail-content">
+                      <span className="property-detail-value">{property.numberOfKitchens || 0}</span>
+                      <span className="property-detail-label">Kitchens</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="p-1.5 bg-purple-100 rounded-md">
+                  <div className="property-detail-item">
+                    <div className="p-1.5 bg-purple-100 rounded-md flex-shrink-0">
                       <Square className="w-4 h-4 text-purple-600" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{property.area || 'N/A'}</span>
-                      <span className="text-xs text-gray-500">Sq ft</span>
+                    <div className="property-detail-content">
+                      <span className="property-detail-value">{property.area || 'N/A'}</span>
+                      <span className="property-detail-label">Sq ft</span>
                     </div>
                   </div>
                 </div>
