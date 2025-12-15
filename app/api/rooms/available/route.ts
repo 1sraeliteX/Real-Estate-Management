@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
 
     // Transform rooms to include availability info
     const roomsWithAvailability = availableRooms.map(room => {
-      const activeOccupants = room.occupants?.reduce((sum, occupant) => 
+      const activeOccupants = (room as any).occupants?.reduce((sum: number, occupant: any) => 
         sum + occupant.numberOfOccupants, 0
       ) || 0
       
@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
         size: room.size,
         hasPrivateBath: room.hasPrivateBath,
         hasKitchen: room.hasKitchen,
-        property: room.property
+        property: (room as any).property
       }
     })
 

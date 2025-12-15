@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
     const currentUser = token ? await AuthService.validateSession(token) : null
     const assignedBy = currentUser?.id || 'system'
 
-    let result
+    let result: { success: boolean; message: string; occupant?: any }
 
     switch (action) {
       case 'assign':
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ 
         success: true, 
         message: result.message,
-        occupant: result.occupant 
+        ...(result.occupant && { occupant: result.occupant })
       })
     } else {
       return NextResponse.json(

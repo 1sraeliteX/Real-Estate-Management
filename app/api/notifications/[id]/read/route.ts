@@ -4,12 +4,13 @@ import { handleApiError } from '@/lib/errorHandler'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await NotificationService.initializeNotificationsTable()
     
-    await NotificationService.markAsRead(params.id)
+    const { id } = await params
+    await NotificationService.markAsRead(id)
     
     return NextResponse.json({ success: true })
   } catch (error) {

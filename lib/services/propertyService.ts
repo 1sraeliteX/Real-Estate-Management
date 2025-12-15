@@ -228,7 +228,9 @@ export class PropertyService {
         const roomsToCreate = rooms.map((room: any) => ({
           propertyId: property.id,
           propertyName: property.name,
+          roomPrefix: room.roomPrefix || 'R',
           roomNumber: room.roomNumber,
+          roomIdentifier: `${room.roomPrefix || 'R'}-${room.roomNumber}`,
           status: 'available',
           yearlyRent: room.yearlyRent,
           maxOccupants: room.maxOccupants || 1,

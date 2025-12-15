@@ -6,10 +6,10 @@ import { RoomAssignmentService } from '@/lib/services/roomAssignmentService'
 // Get all rooms for a specific property
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const propertyId = params.id
+    const { id: propertyId } = await params
     
     const rooms = await RoomAssignmentService.getRoomsWithOccupancy(propertyId)
 
@@ -26,10 +26,10 @@ export async function GET(
 // Create rooms for a property
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const propertyId = params.id
+    const { id: propertyId } = await params
     const { rooms } = await request.json()
     
     if (!rooms || !Array.isArray(rooms)) {
@@ -74,8 +74,11 @@ export async function POST(
       // Check for duplicate room identifiers within the property
       const existingRoom = await prisma.room.findFirst({
         where: {
-          propertyId,
-          roomIdentifier
+          AND: [
+            { propertyId },
+            { roomPrefix: roomData.roomPrefix },
+            { roomNumber: roomData.roomNumber }
+          ]
         }
       })
 

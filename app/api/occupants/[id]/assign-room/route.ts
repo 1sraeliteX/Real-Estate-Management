@@ -4,11 +4,11 @@ import { AuthService } from '@/lib/services/authService'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id: occupantId } = await params
     const { newRoomId } = await request.json()
-    const occupantId = params.id
 
     if (!newRoomId) {
       return NextResponse.json(

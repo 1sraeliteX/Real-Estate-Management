@@ -5,13 +5,14 @@ import { ActivityService } from '@/lib/services/activityService'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const { searchParams } = new URL(request.url)
     const includeRelations = searchParams.get('includeRelations') === 'true'
     
-    const property = await PropertyService.getPropertyById(params.id, includeRelations)
+    const property = await PropertyService.getPropertyById(id, includeRelations)
     
     if (!property) {
       return NextResponse.json(
@@ -36,9 +37,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const token = request.cookies.get('session')?.value
     const user = token ? await AuthService.validateSession(token) : null
 
@@ -51,7 +53,7 @@ export async function PUT(
 
     const propertyData = await request.json()
     
-    const property = await PropertyService.updateProperty(params.id, propertyData)
+    const property = await PropertyService.updateProperty(id, propertyData)
 
     // Log activity
     await ActivityService.logPropertyActivity('updated', property.name, user.id)
@@ -68,9 +70,10 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const token = request.cookies.get('session')?.value
     const user = token ? await AuthService.validateSession(token) : null
 
@@ -83,7 +86,7 @@ export async function DELETE(
       )
     }
 
-    const property = await PropertyService.deleteProperty(params.id)
+    const property = await PropertyService.deleteProperty(id)
 
     // Log activity if user is authenticated
     if (user) {

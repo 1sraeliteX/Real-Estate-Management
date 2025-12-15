@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, X, Edit2, Trash2, Home, Users, DollarSign, Settings } from 'lucide-react'
+import { Plus, X, Edit2, Trash2, Home, Users, DollarSign } from 'lucide-react'
 
 interface RoomData {
   id?: string
@@ -523,3 +523,4 @@ export default function RoomManagement({
       )}
     </div>
   )
+}

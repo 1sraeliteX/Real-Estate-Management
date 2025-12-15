@@ -479,8 +479,8 @@ export default function PropertyDetailPage() {
                         <div className="flex gap-2">
                           <button
                             onClick={() => {
-                              setEditingRoom(room)
-                              setIsEditRoomModalOpen(true)
+                              // TODO: Implement room editing functionality
+                              alert('Room editing feature coming soon!')
                             }}
                             className="flex-1 flex items-center justify-center gap-1 px-2 py-2 text-xs text-blue-600 border border-blue-600 rounded hover:bg-blue-50"
                             title="Edit room"
@@ -801,15 +801,7 @@ export default function PropertyDetailPage() {
         showRoomSelector={!selectedRoomId}
       />
     
-      <EditRoomModal
-        isOpen={isEditRoomModalOpen}
-        onClose={() => {
-          setIsEditRoomModalOpen(false)
-          setEditingRoom(null)
-        }}
-        room={editingRoom}
-        onSave={handleEditRoom}
-      />
+
 </div>
   )
 }

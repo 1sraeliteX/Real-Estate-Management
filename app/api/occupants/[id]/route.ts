@@ -4,11 +4,12 @@ import { validateOccupant } from '@/lib/validation'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const occupant = await prisma.roomOccupant.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: {
         room: {
           include: {
@@ -49,9 +50,10 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const occupantData = await request.json()
     
     // Validate occupant data
@@ -71,7 +73,7 @@ export async function PUT(
     }
 
     const occupant = await prisma.roomOccupant.update({
-      where: { id: params.id },
+      where: { id },
       data: transformedData,
       include: {
         room: {
@@ -106,11 +108,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const occupant = await prisma.roomOccupant.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ occupant })

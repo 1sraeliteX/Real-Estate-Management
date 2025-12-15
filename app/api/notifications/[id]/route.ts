@@ -4,12 +4,13 @@ import { handleApiError } from '@/lib/errorHandler'
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await NotificationService.initializeNotificationsTable()
     
-    await NotificationService.deleteNotification(params.id)
+    await NotificationService.deleteNotification(id)
     
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -19,16 +20,17 @@ export async function DELETE(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await NotificationService.initializeNotificationsTable()
     
     const url = new URL(request.url)
     const pathname = url.pathname
     
     if (pathname.endsWith('/read')) {
-      await NotificationService.markAsRead(params.id)
+      await NotificationService.markAsRead(id)
       return NextResponse.json({ success: true })
     }
     
