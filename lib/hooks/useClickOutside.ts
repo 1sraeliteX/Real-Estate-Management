@@ -5,10 +5,10 @@ import { useEffect, useRef } from 'react'
  * @param handler - Function to call when clicking outside
  * @returns ref - Ref to attach to the element
  */
-export function useClickOutside<T extends HTMLElement>(
+export function useClickOutside<T extends HTMLElement = HTMLElement>(
   handler: () => void
-): React.RefObject<T | null> {
-  const ref = useRef<T | null>(null)
+): React.RefObject<T> {
+  const ref = useRef<T>(null)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

@@ -6,10 +6,16 @@ export function useRooms() {
   return useQuery({
     queryKey: ['rooms'],
     queryFn: async () => {
-      const response = await roomsApi.getAll()
-      // Handle both mock API (response.data is array) and real API (response.data.rooms is array)
-      return Array.isArray(response.data) ? response.data : response.data.rooms || []
+      try {
+        const response = await roomsApi.getAll()
+        // Handle both mock API (response.data is array) and real API (response.data.rooms is array)
+        return Array.isArray(response.data) ? response.data : response.data.rooms || []
+      } catch (error) {
+        console.error('Error fetching rooms:', error)
+        return [] // Return empty array on error
+      }
     },
+    retry: false, // Don't retry on error to avoid cascading failures
   })
 }
 

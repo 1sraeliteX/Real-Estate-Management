@@ -26,11 +26,21 @@ export interface Room {
   propertyId: string
   propertyName: string
   roomNumber: string
-  status: 'available' | 'occupied'
+  status: 'available' | 'occupied' | 'maintenance' | 'reserved'
   occupants: RoomOccupant[]
   yearlyRent: number
+  maxOccupants: number
+  currentOccupants: number
+  roomType?: 'single' | 'shared' | 'studio' | 'apartment'
+  amenities?: string[]
+  floor?: number
+  size?: number
+  hasPrivateBath: boolean
+  hasKitchen: boolean
   rentStartDate?: string
   rentExpiryDate?: string
+  lastOccupiedDate?: string
+  availableSpace?: number // Calculated field for UI
 }
 
 export interface RoomOccupant {
@@ -38,6 +48,7 @@ export interface RoomOccupant {
   roomId: string
   name: string
   phone: string
+  email?: string
   nextOfKin: string
   nextOfKinPhone: string
   numberOfOccupants: number
@@ -46,9 +57,19 @@ export interface RoomOccupant {
   rentExpiryDate: string
   totalRent: number
   amountPaid: number
-  paymentStatus: 'completed' | 'pending' | 'overdue'
+  paymentStatus: 'pending' | 'partial' | 'completed' | 'overdue'
+  assignmentStatus: 'active' | 'moved_out' | 'terminated'
+  moveInDate?: string
+  moveOutDate?: string
+  securityDeposit: number
+  depositStatus: 'pending' | 'paid' | 'refunded'
+  emergencyContact?: string
+  occupation?: string
+  idNumber?: string
   issues: Issue[]
   notes: Note[]
+  assignedBy?: string
+  assignedAt?: string
 }
 
 export interface Issue {

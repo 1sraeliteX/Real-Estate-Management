@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Users, Plus, Search, DollarSign, ArrowLeft, Phone, MessageCircle, Trash2, Home, Calendar } from 'lucide-react'
+import { Users, Plus, Search, DollarSign, ArrowLeft, Phone, MessageCircle, Trash2, Home, Calendar, ArrowRight } from 'lucide-react'
 import AddOccupantModal from '@/components/AddOccupantModal'
+import RoomAssignmentModal from '@/components/RoomAssignmentModal'
 import { RoomOccupant, Room } from '@/types'
 import { useRouter } from 'next/navigation'
 import { useCreateOccupant, useDeleteOccupant } from '@/lib/hooks/useOccupants'
@@ -12,6 +13,8 @@ import { useRooms } from '@/lib/hooks/useRooms'
 export default function OffCampusOccupantsPage() {
   const router = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
+  const [selectedOccupant, setSelectedOccupant] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedProperty, setSelectedProperty] = useState<string>('all')
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState<string>('all')
@@ -37,8 +40,13 @@ export default function OffCampusOccupantsPage() {
     })) || []
   )
 
-  // Available rooms for new occupants
-  const availableRooms = offCampusRooms.filter((room: any) => room.status === 'available')
+  // Available rooms for new occupants (rooms with available space)
+  const availableRooms = offCampusRooms.filter((room: any) => 
+    room.status === 'available' || room.currentOccupants < room.maxOccupants
+  ).map((room: any) => ({
+    ...room,
+    availableSpace: room.maxOccupants - room.currentOccupants
+  }))
 
   const filteredOccupants = occupants.filter((occupant: any) => {
     const matchesSearch = occupant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -78,6 +86,34 @@ export default function OffCampusOccupantsPage() {
 
   const handleCall = (phone: string) => {
     window.location.href = `tel:${phone}`
+  }
+
+  const handleRoomAssignment = (occupant: any) => {
+    setSelectedOccupant(occupant)
+    setIsAssignmentModalOpen(true)
+  }
+
+  const handleAssignRoom = async (occupantId: string, newRoomId: string) => {
+    try {
+      const response = await fetch(`/api/occupants/${occupantId}/assign-room`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newRoomId })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to assign room')
+      }
+
+      const result = await response.json()
+      alert(result.message)
+      // Refresh the data
+      window.location.reload()
+    } catch (error) {
+      console.error('Room assignment error:', error)
+      alert(error instanceof Error ? error.message : 'Failed to assign room')
+    }
   }
 
   const stats = {
@@ -283,13 +319,22 @@ export default function OffCampusOccupantsPage() {
                       </span>
                     </td>
                     <td className="px-4 md:px-6 py-4">
-                      <button
-                        onClick={() => handleDeleteOccupant(occupant.id)}
-                        className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded"
-                        title="Remove occupant"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleRoomAssignment(occupant)}
+                          className="text-purple-600 hover:text-purple-700 p-2 hover:bg-purple-50 rounded"
+                          title="Assign to different room"
+                        >
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteOccupant(occupant.id)}
+                          className="text-red-600 hover:text-red-700 p-2 hover:bg-red-50 rounded"
+                          title="Remove occupant"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -306,11 +351,28 @@ export default function OffCampusOccupantsPage() {
         roomId=""
         availableRooms={availableRooms.map((r: any) => ({
           id: r.id,
-          roomNumber: `${r.propertyName} - Room ${r.roomNumber}`,
-          yearlyRent: r.yearlyRent
+          roomNumber: r.roomNumber,
+          propertyName: r.propertyName,
+          yearlyRent: r.yearlyRent,
+          maxOccupants: r.maxOccupants,
+          currentOccupants: r.currentOccupants,
+          availableSpace: r.availableSpace
         }))}
         showRoomSelector={true}
       />
+
+      {selectedOccupant && (
+        <RoomAssignmentModal
+          isOpen={isAssignmentModalOpen}
+          onClose={() => {
+            setIsAssignmentModalOpen(false)
+            setSelectedOccupant(null)
+          }}
+          occupant={selectedOccupant}
+          availableRooms={availableRooms}
+          onAssign={handleAssignRoom}
+        />
+      )}
     </div>
   )
 }

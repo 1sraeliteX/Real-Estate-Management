@@ -24,7 +24,7 @@ async function testPropertyCreation() {
       area: 850,
       description: 'Test property for debugging',
       amenities: JSON.stringify(['WiFi', 'Parking', 'Security']),
-      images: JSON.stringify(['https://example.com/image1.jpg']),
+      images: JSON.stringify(['/realestate4.jpeg']),
       yearBuilt: 2023,
       parkingSpaces: 'yes',
       userId: null, // Allow null userId for testing

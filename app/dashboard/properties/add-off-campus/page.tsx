@@ -82,7 +82,7 @@ export default function AddOffCampusPropertyPage() {
         area: 0, // Not used for off-campus
         description: formData.description,
         amenities: formData.amenities,
-        images: formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+        images: formData.images.length > 0 ? formData.images : ['/realestate2.jpeg'],
         yearBuilt: new Date().getFullYear(),
         parkingSpaces: 'yes',
       }
@@ -355,7 +355,7 @@ export default function AddOffCampusPropertyPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
                 >
                   <Upload className="w-5 h-5" />
                   Upload from Device
@@ -368,7 +368,7 @@ export default function AddOffCampusPropertyPage() {
                       fileInputRef.current.click()
                     }
                   }}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
                 >
                   <Camera className="w-5 h-5" />
                   Take Photo

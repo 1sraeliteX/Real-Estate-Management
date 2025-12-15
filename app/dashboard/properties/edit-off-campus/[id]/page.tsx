@@ -18,7 +18,7 @@ export default function EditOffCampusPropertyPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [propertyTypes, setPropertyTypes] = useState<string[]>([])
   
-  const { data: property, isLoading } = useProperty(propertyId)
+  const { data: property, isLoading, error } = useProperty(propertyId)
   const updateProperty = useUpdateProperty((name) => {
     addActivity('updated', 'property', `Updated off-campus property: ${name}`)
   })
@@ -300,7 +300,7 @@ export default function EditOffCampusPropertyPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
                 >
                   <Upload className="w-5 h-5" />
                   Upload from Device
@@ -313,7 +313,7 @@ export default function EditOffCampusPropertyPage() {
                       fileInputRef.current.click()
                     }
                   }}
-                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-purple-300 text-purple-600 rounded-lg hover:bg-purple-50"
+                  className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
                 >
                   <Camera className="w-5 h-5" />
                   Take Photo

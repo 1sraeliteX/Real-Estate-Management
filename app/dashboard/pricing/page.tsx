@@ -87,6 +87,11 @@ export default function PricingPage() {
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Select the perfect property management solution for your needs.
           </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto mt-6 mb-6">
+            <p className="text-blue-800 text-sm font-medium">
+              💡 Click on any plan card below to view detailed pricing features and learn more about what's included
+            </p>
+          </div>
           <h2 className="text-4xl md:text-5xl font-bold text-gray-900 max-w-3xl mx-auto mt-6">
             🏠 Trusted by {userCount}+ landlords and caretakers to manage properties effortlessly. ✨ Experience smarter real estate management. 🚀
           </h2>
@@ -382,6 +387,14 @@ export default function PricingPage() {
               <div className="text-xs text-amber-500">Enhanced Features</div>
             </div>
           </div>
+        </div>
+
+        {/* Note Section */}
+        <div className="mt-8 bg-gray-50 border border-gray-200 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-3">📝 Note</h3>
+          <p className="text-gray-700 text-sm">
+            Pricing might vary due to inflation and customization demands.
+          </p>
         </div>
       </div>
     </div>

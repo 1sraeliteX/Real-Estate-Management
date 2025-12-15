@@ -52,6 +52,9 @@ model UserSettings {
   appName              String  @default("Cornerstone Realty")
   rentDueReminderDays  Int     @default(7)
   hasSeenWelcomeGuide  Boolean @default(false)
+  reminderText         String? 
+  reminderEnabled      Boolean @default(false)
+  currencySymbol       String  @default("₦") // Currency symbol preference
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 
@@ -159,10 +162,19 @@ model Room {
   propertyId      String
   propertyName    String
   roomNumber      String
-  status          String
+  status          String   // 'available', 'occupied', 'maintenance', 'reserved'
   yearlyRent      Int
+  maxOccupants    Int      @default(1)  // Maximum number of occupants allowed
+  currentOccupants Int     @default(0)  // Current number of occupants
+  roomType        String?  // 'single', 'shared', 'studio', 'apartment'
+  amenities       String?  // JSON string for room-specific amenities
+  floor           Int?     // Floor number
+  size            Float?   // Room size in square meters
+  hasPrivateBath  Boolean  @default(false)
+  hasKitchen      Boolean  @default(false)
   rentStartDate   String?
   rentExpiryDate  String?
+  lastOccupiedDate String? // Track when room was last occupied
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -173,6 +185,7 @@ model Room {
   @@index([propertyId])
   @@index([status])
   @@index([propertyId, status])
+  @@index([maxOccupants, currentOccupants])
   @@map("rooms")
 }
 
@@ -181,6 +194,7 @@ model RoomOccupant {
   roomId             String
   name               String
   phone              String
+  email              String?  // Optional email for better communication
   nextOfKin          String
   nextOfKinPhone     String
   numberOfOccupants  Int
@@ -189,14 +203,30 @@ model RoomOccupant {
   rentExpiryDate     String
   totalRent          Int
   amountPaid         Int
-  paymentStatus      String
-  issues             String
-  notes              String
+  paymentStatus      String   // 'pending', 'partial', 'completed', 'overdue'
+  assignmentStatus   String   @default("active") // 'active', 'moved_out', 'terminated'
+  moveInDate         String?  // Actual move-in date (can differ from rent start)
+  moveOutDate        String?  // Actual move-out date
+  securityDeposit    Int      @default(0)
+  depositStatus      String   @default("pending") // 'pending', 'paid', 'refunded'
+  emergencyContact   String?  // Additional emergency contact
+  occupation         String?  // Occupant's job/profession
+  idNumber           String?  // National ID or passport number
+  issues             String   // JSON string for issues
+  notes              String   // JSON string for notes
+  assignedBy         String?  // User ID who assigned this occupant
+  assignedAt         DateTime @default(now())
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 
   room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
+  // Indexes for performance and queries
+  @@index([roomId])
+  @@index([assignmentStatus])
+  @@index([paymentStatus])
+  @@index([rentExpiryDate])
+  @@index([roomId, assignmentStatus])
   @@map("room_occupants")
 }
 
@@ -244,4 +274,28 @@ model MaintenanceRequest {
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   @@map("maintenance_requests")
+}
+
+// New model to track room assignment history
+model RoomAssignmentHistory {
+  id            String   @id @default(cuid())
+  roomId        String
+  occupantId    String?  // Can be null if tracking room status changes
+  propertyId    String
+  action        String   // 'assigned', 'moved_out', 'transferred', 'status_changed'
+  fromStatus    String?  // Previous room status
+  toStatus      String?  // New room status
+  assignedBy    String?  // User who made the assignment
+  reason        String?  // Reason for the change
+  notes         String?
+  effectiveDate String   // When the change took effect
+  createdAt     DateTime @default(now())
+
+  // Relations (no foreign keys to allow historical data even if records are deleted)
+  @@index([roomId])
+  @@index([occupantId])
+  @@index([propertyId])
+  @@index([action])
+  @@index([effectiveDate])
+  @@map("room_assignment_history")
 }

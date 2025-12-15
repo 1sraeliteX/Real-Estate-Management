@@ -92,7 +92,7 @@ export default function AddOnCampusPropertyPage() {
         area: 0, // Not used for on-campus
         description: formData.description.trim(),
         amenities: formData.amenities.filter(a => a.trim()), // Remove empty amenities
-        images: formData.images.length > 0 ? formData.images : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+        images: formData.images.length > 0 ? formData.images : ['/realestate1.jpeg'],
         yearBuilt: new Date().getFullYear(),
         parkingSpaces: 'yes',
       }

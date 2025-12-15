@@ -83,7 +83,7 @@ async function measureApiPerformance() {
       area: 800,
       description: 'Performance test property',
       amenities: ['WiFi', 'Parking'],
-      images: ['https://example.com/image.jpg'],
+      images: ['/realestate1.jpeg'],
       yearBuilt: 2023,
       parkingSpaces: '2'
     }

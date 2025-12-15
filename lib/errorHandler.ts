@@ -9,7 +9,10 @@ export interface AppError {
 
 export class ErrorHandler {
   static handle(error: unknown): AppError {
-    console.error('Error occurred:', error)
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Error occurred:', error)
+    }
 
     // Axios errors (API calls)
     if (error instanceof AxiosError) {

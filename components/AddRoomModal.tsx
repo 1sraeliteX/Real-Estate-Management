@@ -36,6 +36,10 @@ export default function AddRoomModal({ isOpen, onClose, onAdd, propertyId, prope
       status: 'available',
       occupants: [],
       yearlyRent: parseFloat(formData.yearlyRent),
+      maxOccupants: 2,
+      currentOccupants: 0,
+      hasPrivateBath: false,
+      hasKitchen: false,
     }
 
     onAdd(newRoom)

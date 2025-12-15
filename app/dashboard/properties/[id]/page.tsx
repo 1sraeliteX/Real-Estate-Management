@@ -744,7 +744,11 @@ export default function PropertyDetailPage() {
         availableRooms={rooms.filter(r => r.status === 'available').map(r => ({
           id: r.id,
           roomNumber: r.roomNumber,
-          yearlyRent: r.yearlyRent
+          yearlyRent: r.yearlyRent,
+          propertyName: property?.name || '',
+          maxOccupants: r.maxOccupants || 1,
+          currentOccupants: r.occupants?.length || 0,
+          availableSpace: (r.maxOccupants || 1) - (r.occupants?.length || 0)
         }))}
         showRoomSelector={!selectedRoomId}
       />

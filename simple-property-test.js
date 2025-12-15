@@ -5,7 +5,7 @@ const axios = require('axios')
 async function testPropertyCreation() {
   console.log('🧪 Testing Property Creation API...')
   
-  const baseURL = 'http://localhost:3003/api'
+  const baseURL = 'http://localhost:3002/api'
   
   try {
     // Test 1: Get existing properties
@@ -27,7 +27,7 @@ async function testPropertyCreation() {
       area: 800,
       description: 'Test property for API validation',
       amenities: ['WiFi', 'Parking'],
-      images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+      images: ['/realestate3.jpeg'],
       yearBuilt: 2023,
       parkingSpaces: 'yes'
     }

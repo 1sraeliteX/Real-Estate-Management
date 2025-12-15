@@ -28,7 +28,7 @@ async function testFrontendFormSubmission() {
       area: 0, // Not used for on-campus
       description: 'Test lodge from frontend form',
       amenities: ['WiFi', 'Study Room', 'Laundry'], // Array format from frontend
-      images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'], // Array format
+      images: ['/realestate1.jpeg'], // Array format
       yearBuilt: new Date().getFullYear(),
       parkingSpaces: 'yes',
     }
@@ -58,7 +58,7 @@ async function testFrontendFormSubmission() {
       area: 850, // Required for apartments (in sq ft)
       description: 'Test apartment from frontend form',
       amenities: ['Parking', 'Gym', 'Pool'], // Array format from frontend
-      images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'], // Array format
+      images: ['/realestate2.jpeg'], // Array format
       yearBuilt: new Date().getFullYear(),
       parkingSpaces: 'yes',
     }

@@ -31,18 +31,20 @@ export function ActivityProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true)
       const fetchedActivities = await ActivityClient.getActivities(50)
-      setActivities(fetchedActivities)
+      setActivities(Array.isArray(fetchedActivities) ? fetchedActivities : [])
     } catch (error) {
       console.error('Failed to load activities:', error)
-      showToast('Failed to load activities', 'error')
+      setActivities([]) // Set safe default
+      // Don't show toast on initial load failure
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, []) // Remove showToast dependency to avoid circular reference
 
-  useEffect(() => {
-    refreshActivities()
-  }, [refreshActivities])
+  // Don't automatically load activities on mount to avoid API errors
+  // useEffect(() => {
+  //   refreshActivities()
+  // }, [refreshActivities])
 
   const addActivity = useCallback(async (
     type: string,

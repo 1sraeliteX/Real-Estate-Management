@@ -1,5 +1,6 @@
 'use client'
 
+import React, { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building2, Users, Home, AlertCircle, Bed } from 'lucide-react'
 import QuickStartCard from '@/components/QuickStartCard'
@@ -10,53 +11,65 @@ import { useActivity } from '@/lib/contexts/ActivityContext'
 
 export default function DashboardPage() {
   const router = useRouter()
-  const { data: properties = [], isLoading: propertiesLoading } = useProperties()
-  const { data: rooms = [], isLoading: roomsLoading } = useRooms()
-  const { activities } = useActivity()
+  const propertiesQuery = useProperties()
+  const roomsQuery = useRooms()
+  const activityContext = useActivity()
+
+  // Extract data with safe defaults
+  const properties = propertiesQuery?.data || []
+  const rooms = roomsQuery?.data || []
+  const activities = activityContext?.activities || []
+  const isLoading = propertiesQuery?.isLoading || roomsQuery?.isLoading || false
+
+  // Memoized calculations for better performance
+  const stats = useMemo(() => {
+    // Calculate room stats
+    const totalRooms = rooms.length
+    const occupiedRooms = rooms.filter((r: any) => r.status === 'occupied').length
+    const vacantRooms = totalRooms - occupiedRooms
+
+    // Calculate property type stats
+    const onCampusProperties = properties.filter((p: any) => p.type === 'lodge')
+    const offCampusProperties = properties.filter((p: any) => p.type !== 'lodge')
+
+    // Calculate stats from real data
+    const totalOccupants = rooms.reduce((sum: number, room: any) => sum + (room.occupants?.length || 0), 0)
+    const totalFinance = rooms.reduce((sum: number, room: any) => {
+      const paidAmount = room.occupants?.reduce((occupantSum: number, occupant: any) => occupantSum + (occupant.amountPaid || 0), 0) || 0
+      return sum + paidAmount
+    }, 0)
+    const pendingPayments = rooms.reduce((sum: number, room: any) => {
+      const pendingAmount = room.occupants?.reduce((occupantSum: number, occupant: any) => {
+        return occupantSum + ((occupant.totalRent || 0) - (occupant.amountPaid || 0))
+      }, 0) || 0
+      return sum + pendingAmount
+    }, 0)
+
+    return {
+      totalFinance,
+      totalProperties: properties.length,
+      totalRooms,
+      occupiedRooms,
+      vacantRooms,
+      onCampusProperties: onCampusProperties.length,
+      offCampusProperties: offCampusProperties.length,
+      totalOccupants,
+      pendingPayments,
+      occupiedProperties: properties.filter((p: any) => p.status === 'occupied').length,
+      availableProperties: properties.filter((p: any) => p.status === 'available').length,
+    }
+  }, [properties, rooms])
+
+  const showQuickStart = stats.totalProperties === 0 && stats.totalOccupants === 0
 
   // Show loading state
-  if (propertiesLoading || roomsLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <LoadingSpinner />
       </div>
     )
   }
-
-  // Calculate room stats
-  const totalRooms = rooms.length
-  const occupiedRooms = rooms.filter((r: any) => r.status === 'occupied').length
-  const vacantRooms = totalRooms - occupiedRooms
-
-  // Calculate property type stats
-  const onCampusProperties = properties.filter((p: any) => p.type === 'lodge')
-  const offCampusProperties = properties.filter((p: any) => p.type !== 'lodge')
-
-  // Calculate stats from real data
-  const totalOccupants = rooms.reduce((sum: number, room: any) => sum + room.occupants.length, 0)
-  const totalFinance = rooms.reduce((sum: number, room: any) => {
-    const paidAmount = room.occupants.reduce((occupantSum: number, occupant: any) => occupantSum + occupant.amountPaid, 0)
-    return sum + paidAmount
-  }, 0)
-  const pendingPayments = rooms.reduce((sum: number, room: any) => {
-    const pendingAmount = room.occupants.reduce((occupantSum: number, occupant: any) => {
-      return occupantSum + (occupant.totalRent - occupant.amountPaid)
-    }, 0)
-    return sum + pendingAmount
-  }, 0)
-
-  const stats = {
-    totalFinance,
-    totalProperties: properties.length,
-    onCampusCount: onCampusProperties.length,
-    offCampusCount: offCampusProperties.length,
-    totalOccupants,
-    occupiedProperties: properties.filter((p: any) => p.status === 'occupied').length,
-    availableProperties: properties.filter((p: any) => p.status === 'available').length,
-    pendingPayments,
-  }
-
-  const showQuickStart = stats.totalProperties === 0 && stats.totalOccupants === 0
 
   return (
     <div>
@@ -154,17 +167,17 @@ export default function DashboardPage() {
             <Bed className="w-10 h-10 text-emerald-600" />
           </div>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-5xl font-bold text-emerald-900">{occupiedRooms}</span>
-            <span className="text-2xl text-emerald-700">out of {totalRooms}</span>
+            <span className="text-5xl font-bold text-emerald-900">{stats.occupiedRooms}</span>
+            <span className="text-2xl text-emerald-700">out of {stats.totalRooms}</span>
           </div>
           <div className="w-full bg-emerald-200 rounded-full h-4 mt-4">
             <div 
               className="bg-gradient-to-r from-emerald-600 to-teal-600 h-4 rounded-full transition-all"
-              style={{ width: `${totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0}%` }}
+              style={{ width: `${stats.totalRooms > 0 ? (stats.occupiedRooms / stats.totalRooms) * 100 : 0}%` }}
             />
           </div>
           <p className="text-base text-emerald-700 mt-3 font-medium">
-            {totalRooms > 0 ? ((occupiedRooms / totalRooms) * 100).toFixed(0) : 0}% of rooms are occupied
+            {stats.totalRooms > 0 ? ((stats.occupiedRooms / stats.totalRooms) * 100).toFixed(0) : 0}% of rooms are occupied
           </p>
         </div>
 
@@ -174,17 +187,17 @@ export default function DashboardPage() {
             <Bed className="w-10 h-10 text-blue-600" />
           </div>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-5xl font-bold text-blue-900">{vacantRooms}</span>
-            <span className="text-2xl text-blue-700">out of {totalRooms}</span>
+            <span className="text-5xl font-bold text-blue-900">{stats.vacantRooms}</span>
+            <span className="text-2xl text-blue-700">out of {stats.totalRooms}</span>
           </div>
           <div className="w-full bg-blue-200 rounded-full h-4 mt-4">
             <div 
               className="bg-gradient-to-r from-blue-600 to-cyan-600 h-4 rounded-full transition-all"
-              style={{ width: `${totalRooms > 0 ? (vacantRooms / totalRooms) * 100 : 0}%` }}
+              style={{ width: `${stats.totalRooms > 0 ? (stats.vacantRooms / stats.totalRooms) * 100 : 0}%` }}
             />
           </div>
           <p className="text-base text-blue-700 mt-3 font-medium">
-            {totalRooms > 0 ? ((vacantRooms / totalRooms) * 100).toFixed(0) : 0}% ready for new tenants
+            {stats.totalRooms > 0 ? ((stats.vacantRooms / stats.totalRooms) * 100).toFixed(0) : 0}% ready for new tenants
           </p>
         </div>
       </div>
@@ -197,7 +210,7 @@ export default function DashboardPage() {
             <Building2 className="w-10 h-10 text-slate-600" />
           </div>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-5xl font-bold text-slate-900">{stats.onCampusCount}</span>
+            <span className="text-5xl font-bold text-slate-900">{stats.onCampusProperties}</span>
             <span className="text-2xl text-slate-700">hostels</span>
           </div>
           <p className="text-base text-slate-700 mt-3 font-medium">
@@ -211,7 +224,7 @@ export default function DashboardPage() {
             <Home className="w-10 h-10 text-amber-600" />
           </div>
           <div className="flex items-baseline gap-2 mb-2">
-            <span className="text-5xl font-bold text-amber-900">{stats.offCampusCount}</span>
+            <span className="text-5xl font-bold text-amber-900">{stats.offCampusProperties}</span>
             <span className="text-2xl text-amber-700">houses</span>
           </div>
           <p className="text-base text-amber-700 mt-3 font-medium">
@@ -219,8 +232,6 @@ export default function DashboardPage() {
           </p>
         </div>
       </div>
-
-
 
       {/* Recent Activities */}
       <div className="mt-8 bg-white rounded-xl border-2 border-gray-200 p-6 shadow-md">

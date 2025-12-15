@@ -5,6 +5,7 @@ import { User, Mail, Phone, MapPin, Camera, Save, X } from 'lucide-react'
 import { AuthClient } from '@/lib/client/authClient'
 import Toast from '@/components/Toast'
 import QuickLogin from '@/components/QuickLogin'
+import LoadingSpinner from '@/components/LoadingSpinner'
 
 interface UserProfile {
   name: string
@@ -107,7 +108,8 @@ export default function ProfilePage() {
       // Check if user is authenticated
       const currentUser = await AuthClient.getCurrentUser()
       if (!currentUser) {
-        setToast({ message: 'Please log in to update your profile', type: 'error' })
+        setToast({ message: 'Authentication required. Please log in to update your profile.', type: 'error' })
+        setIsAuthenticated(false)
         setIsSaving(false)
         return
       }
@@ -178,27 +180,8 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto">
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 h-32"></div>
-          <div className="px-6 pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between -mt-16 mb-6">
-              <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 animate-pulse"></div>
-            </div>
-            <div className="space-y-4">
-              <div className="h-8 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 bg-gray-200 rounded animate-pulse w-1/2"></div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="space-y-2">
-                    <div className="h-4 bg-gray-200 rounded animate-pulse w-1/3"></div>
-                    <div className="h-12 bg-gray-200 rounded animate-pulse"></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <LoadingSpinner text="Loading profile..." />
       </div>
     )
   }

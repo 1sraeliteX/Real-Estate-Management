@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { DollarSign, Settings, LayoutDashboard, ChevronLeft, ChevronRight, Users, CreditCard, Home, User } from 'lucide-react'
+import { DarkModeToggle } from './DarkModeToggle'
 
 const menuItems = [
   { name: 'Home', href: '/dashboard', icon: LayoutDashboard, description: 'Overview' },
@@ -176,6 +177,16 @@ export default function Sidebar({
               <span className="font-semibold text-base">Profile</span>
             )}
           </Link>
+          
+          {/* Dark Mode Toggle */}
+          {!isCollapsed && (
+            <div className="mt-4 px-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-400">Theme</span>
+                <DarkModeToggle />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </aside>

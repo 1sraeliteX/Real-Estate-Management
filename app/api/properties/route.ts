@@ -3,6 +3,7 @@ import { PropertyService } from '@/lib/services/propertyService'
 import { AuthService } from '@/lib/services/authService'
 import { ActivityService } from '@/lib/services/activityService'
 import { validateProperty } from '@/lib/validation'
+import { handleApiError } from '@/lib/errorHandler'
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
         user = await AuthService.validateSession(token)
       } catch (error) {
         // Continue without user context if session validation fails
-        console.warn('Session validation failed:', error)
+        // Session validation failed, continue without user context
       }
     }
 
@@ -46,11 +47,7 @@ export async function GET(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Get properties error:', error)
-    return NextResponse.json(
-      { error: 'Failed to get properties' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 
@@ -60,8 +57,6 @@ export async function POST(request: NextRequest) {
     const user = token ? await AuthService.validateSession(token) : null
 
     const propertyData = await request.json()
-    
-    console.log('Received property data:', propertyData)
     
     // Validate property data
     const validation = validateProperty(propertyData)
@@ -81,8 +76,6 @@ export async function POST(request: NextRequest) {
     
     const property = await PropertyService.createProperty(createData)
 
-    console.log('Created property:', property)
-
     // Log activity if user is authenticated
     if (user) {
       await ActivityService.logPropertyActivity('created', property.name, user.id)
@@ -90,10 +83,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ property })
   } catch (error) {
-    console.error('Create property error:', error)
-    return NextResponse.json(
-      { error: 'Failed to create property', details: error instanceof Error ? error.message : 'Unknown error' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

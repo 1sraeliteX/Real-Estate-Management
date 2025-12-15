@@ -17,7 +17,7 @@ export default function EditOnCampusPropertyPage() {
   const { addActivity } = useActivity()
   const fileInputRef = useRef<HTMLInputElement>(null)
   
-  const { data: property, isLoading } = useProperty(propertyId)
+  const { data: property, isLoading, error } = useProperty(propertyId)
   const updateProperty = useUpdateProperty((name) => {
     addActivity('updated', 'property', `Updated on-campus property: ${name}`)
   })

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { X, Upload, Plus, Trash2 } from 'lucide-react'
+import { X, Upload, Plus, Trash2, Camera } from 'lucide-react'
 import { Property } from '@/types'
 
 interface AddLodgeModalProps {
@@ -74,7 +74,7 @@ export default function AddLodgeModal({ isOpen, onClose, onAdd }: AddLodgeModalP
       type: 'lodge',
       status: 'available',
       yearlyRent: parseFloat(formData.yearlyRent),
-      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+      images: images.length > 0 ? images : ['/realestate4.jpeg'],
       description: formData.description,
       amenities,
       yearBuilt: parseInt(formData.yearBuilt),
@@ -253,15 +253,32 @@ export default function AddLodgeModal({ isOpen, onClose, onAdd }: AddLodgeModalP
               onChange={handleImageUpload}
               accept="image/*"
               multiple
+              capture="environment"
               className="hidden"
             />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center gap-2 mb-3"
-            >
-              <Upload className="w-4 h-4" /> Upload from Device
-            </button>
+            <div className="flex gap-2 mb-3">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
+              >
+                <Upload className="w-5 h-5" />
+                Upload from Device
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (fileInputRef.current) {
+                    fileInputRef.current.setAttribute('capture', 'environment')
+                    fileInputRef.current.click()
+                  }
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50"
+              >
+                <Camera className="w-5 h-5" />
+                Take Photo
+              </button>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {imagePreviews.map((preview, index) => (
                 <div key={index} className="relative group">

@@ -163,11 +163,17 @@ export default function OffCampusPropertiesPage() {
             >
               <Link href={`/dashboard/properties/${property.id}`}>
                 <div className="relative h-56 cursor-pointer overflow-hidden">
-                  <img
-                    src={property.images[0] as string}
-                    alt={property.name}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
+                  {property.images && property.images.length > 0 ? (
+                    <img
+                      src={property.images[0] as string}
+                      alt={property.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center">
+                      <Home className="w-16 h-16 text-purple-400" />
+                    </div>
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   <span className={`absolute top-4 right-4 px-3 py-1.5 rounded-full text-xs font-semibold shadow-lg backdrop-blur-sm ${getStatusColor(property.status)}`}>
                     {property.status.charAt(0).toUpperCase() + property.status.slice(1)}

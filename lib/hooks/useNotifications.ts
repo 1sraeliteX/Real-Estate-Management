@@ -9,18 +9,20 @@ export function useNotifications() {
   const loadNotifications = useCallback(async (limit?: number) => {
     try {
       const data = await NotificationClient.getNotifications(limit)
-      setNotifications(data)
+      setNotifications(Array.isArray(data) ? data : [])
     } catch (error) {
       console.error('Error loading notifications:', error)
+      setNotifications([]) // Set safe default
     }
   }, [])
 
   const loadUnreadCount = useCallback(async () => {
     try {
       const count = await NotificationClient.getUnreadCount()
-      setUnreadCount(count)
+      setUnreadCount(typeof count === 'number' ? count : 0)
     } catch (error) {
       console.error('Error loading unread count:', error)
+      setUnreadCount(0) // Set safe default
     }
   }, [])
 
@@ -54,28 +56,50 @@ export function useNotifications() {
   useEffect(() => {
     const initialize = async () => {
       setLoading(true)
-      await Promise.all([
-        loadNotifications(5),
-        loadUnreadCount()
-      ])
-      setLoading(false)
+      try {
+        await Promise.all([
+          loadNotifications(5),
+          loadUnreadCount()
+        ])
+      } catch (error) {
+        console.error('Error initializing notifications:', error)
+        // Set safe defaults
+        setNotifications([])
+        setUnreadCount(0)
+      } finally {
+        setLoading(false)
+      }
     }
 
     initialize()
 
     // Set up polling for real-time updates
-    const interval = setInterval(refreshNotifications, 30000) // Poll every 30 seconds
+    const interval = setInterval(() => {
+      try {
+        refreshNotifications()
+      } catch (error) {
+        console.error('Error refreshing notifications:', error)
+      }
+    }, 30000) // Poll every 30 seconds
 
     // Listen for custom notification events
     const handleNewNotification = () => {
-      refreshNotifications()
+      try {
+        refreshNotifications()
+      } catch (error) {
+        console.error('Error handling new notification:', error)
+      }
     }
 
-    window.addEventListener('newNotification', handleNewNotification)
+    if (typeof window !== 'undefined') {
+      window.addEventListener('newNotification', handleNewNotification)
+    }
 
     return () => {
       clearInterval(interval)
-      window.removeEventListener('newNotification', handleNewNotification)
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('newNotification', handleNewNotification)
+      }
     }
   }, [loadNotifications, loadUnreadCount, refreshNotifications])
 

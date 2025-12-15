@@ -9,7 +9,15 @@ interface AddOccupantModalProps {
   onClose: () => void
   onAdd: (occupant: Omit<RoomOccupant, 'id'>) => void
   roomId: string
-  availableRooms?: Array<{ id: string; roomNumber: string; yearlyRent: number }>
+  availableRooms?: Array<{ 
+    id: string; 
+    roomNumber: string; 
+    yearlyRent: number;
+    propertyName: string;
+    maxOccupants: number;
+    currentOccupants: number;
+    availableSpace?: number;
+  }>
   showRoomSelector?: boolean
 }
 
@@ -68,6 +76,9 @@ export default function AddOccupantModal({
       totalRent,
       amountPaid,
       paymentStatus: amountPaid >= totalRent ? 'completed' : 'pending',
+      assignmentStatus: 'active',
+      securityDeposit: 0,
+      depositStatus: 'pending',
       issues: [],
       notes: []
     }
@@ -117,20 +128,24 @@ export default function AddOccupantModal({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {showRoomSelector && availableRooms.length > 0 && (
               <div className="md:col-span-2 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <label className="block text-base font-bold text-gray-900 mb-2">🏠 Which Room? *</label>
+                <label className="block text-base font-bold text-gray-900 mb-2">🏠 Select Property & Room *</label>
                 <select
                   value={formData.roomId}
                   onChange={handleRoomChange}
                   required
                   className="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="">Choose a room...</option>
+                  <option value="">Choose a property and room...</option>
                   {availableRooms.map(room => (
                     <option key={room.id} value={room.id}>
-                      Room {room.roomNumber} - ₦{room.yearlyRent.toLocaleString()}/year
+                      {room.propertyName} - Room {room.roomNumber} - ₦{room.yearlyRent.toLocaleString()}/year
+                      {room.availableSpace && ` (${room.availableSpace} spaces available)`}
                     </option>
                   ))}
                 </select>
+                <p className="mt-2 text-sm text-gray-600">
+                  Select the property and specific room number for this tenant
+                </p>
               </div>
             )}
             

@@ -20,7 +20,7 @@ export default function OnCampusFinancesPage() {
     )
 
     return onCampusRooms.flatMap(room =>
-      room.occupants.map(occ => ({
+      room.occupants.map((occ: any) => ({
         id: `room-${occ.id}`,
         propertyId: room.propertyId,
         propertyName: room.propertyName,

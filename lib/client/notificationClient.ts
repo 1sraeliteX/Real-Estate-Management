@@ -14,29 +14,29 @@ export interface Notification {
 export class NotificationClient {
   static async getNotifications(limit?: number): Promise<Notification[]> {
     const params = limit ? `?limit=${limit}` : ''
-    const response = await api.get(`/api/notifications${params}`)
+    const response = await api.get(`/notifications${params}`)
     return response.data
   }
 
   static async getUnreadCount(): Promise<number> {
-    const response = await api.get('/api/notifications/unread-count')
+    const response = await api.get('/notifications/unread-count')
     return response.data.count
   }
 
   static async markAsRead(notificationId: string): Promise<void> {
-    await api.patch(`/api/notifications/${notificationId}/read`)
+    await api.patch(`/notifications/${notificationId}/read`)
   }
 
   static async markAllAsRead(): Promise<void> {
-    await api.patch('/api/notifications/mark-all-read')
+    await api.patch('/notifications/mark-all-read')
   }
 
   static async deleteNotification(notificationId: string): Promise<void> {
-    await api.delete(`/api/notifications/${notificationId}`)
+    await api.delete(`/notifications/${notificationId}`)
   }
 
   static async createNotification(notification: Omit<Notification, 'id' | 'createdAt' | 'isRead'>): Promise<Notification> {
-    const response = await api.post('/api/notifications', notification)
+    const response = await api.post('/notifications', notification)
     return response.data
   }
 }

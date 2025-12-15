@@ -11,7 +11,7 @@ export const mockProperties: Property[] = [
     bedrooms: 2,
     bathrooms: 2,
     area: 1200,
-    images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800', 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'],
+    images: ['/realestate1.jpeg', '/realestate2.jpeg'],
     description: 'Beautiful 2-bedroom apartment with modern amenities and stunning city views.',
     amenities: ['Air Conditioning', 'Dishwasher', 'Gym', 'Pool', 'Parking', 'Laundry'],
     yearBuilt: 2018,
@@ -27,7 +27,7 @@ export const mockProperties: Property[] = [
     bedrooms: 4,
     bathrooms: 3,
     area: 2400,
-    images: ['https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=800'],
+    images: ['/realestate3.jpeg'],
     description: 'Spacious family home with backyard and garage.',
     amenities: ['Garden', 'Garage', 'Fireplace', 'Central Heating', 'Hardwood Floors'],
     yearBuilt: 2015,
@@ -43,7 +43,7 @@ export const mockProperties: Property[] = [
     bedrooms: 3,
     bathrooms: 2,
     area: 1800,
-    images: ['https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800'],
+    images: ['/realestate4.jpeg'],
     description: 'Luxury condo in prime location, currently under maintenance.',
     amenities: ['Doorman', 'Concierge', 'Rooftop Terrace', 'Gym', 'Storage'],
     yearBuilt: 2020,
@@ -59,7 +59,7 @@ export const mockProperties: Property[] = [
     bedrooms: 1,
     bathrooms: 1,
     area: 850,
-    images: ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+    images: ['/realestate1.jpeg'],
     description: 'Cozy studio with river views and modern finishes.',
     amenities: ['Balcony', 'Air Conditioning', 'Elevator', 'Pet Friendly'],
     yearBuilt: 2019,
@@ -72,7 +72,7 @@ export const mockProperties: Property[] = [
     type: 'lodge',
     status: 'occupied',
     yearlyRent: 12000000,
-    images: ['https://images.unsplash.com/photo-1582268611958-ebfd161ef9cf?w=800'],
+    images: ['/realestate2.jpeg'],
     description: 'Modern lodge with multiple rooms, perfect for students and workers.',
     amenities: ['Security', 'Generator', 'Water Tank', 'Parking', 'CCTV'],
     yearBuilt: 2021,
@@ -93,7 +93,7 @@ export const mockProperties: Property[] = [
     bedrooms: 4,
     bathrooms: 3,
     area: 3200,
-    images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'],
+    images: ['/realestate3.jpeg'],
     description: 'Luxury penthouse with panoramic city views and premium finishes.',
     amenities: ['Private Elevator', 'Rooftop Terrace', 'Wine Cellar', 'Smart Home', 'Concierge'],
     yearBuilt: 2022,
@@ -109,7 +109,7 @@ export const mockProperties: Property[] = [
     bedrooms: 3,
     bathrooms: 2,
     area: 1800,
-    images: ['https://images.unsplash.com/photo-1449844908441-8829872d2607?w=800'],
+    images: ['/realestate4.jpeg'],
     description: 'Charming townhouse in quiet neighborhood with private garden.',
     amenities: ['Garden', 'Patio', 'Fireplace', 'Garage', 'Storage Room'],
     yearBuilt: 2017,
@@ -123,7 +123,7 @@ export const mockProperties: Property[] = [
     status: 'occupied',
     yearlyRent: 15600000,
     area: 2500,
-    images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=800'],
+    images: ['/realestate1.jpeg'],
     description: 'Premium office space in the heart of the financial district.',
     amenities: ['Reception Area', 'Conference Rooms', 'High-Speed Internet', 'Security', 'Parking'],
     yearBuilt: 2019,
@@ -136,7 +136,7 @@ export const mockProperties: Property[] = [
     type: 'lodge',
     status: 'occupied',
     yearlyRent: 18000000,
-    images: ['https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800'],
+    images: ['/realestate2.jpeg'],
     description: 'Premium student accommodation with modern facilities and study areas.',
     amenities: ['Study Rooms', 'Gym', 'Laundry', 'Security', 'WiFi', 'Generator', 'Water Tank'],
     yearBuilt: 2020,
@@ -157,7 +157,7 @@ export const mockProperties: Property[] = [
     bedrooms: 2,
     bathrooms: 1,
     area: 950,
-    images: ['https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800'],
+    images: ['/realestate3.jpeg'],
     description: 'Affordable apartment undergoing renovation for improved living standards.',
     amenities: ['Laundry Room', 'Parking', 'Playground', 'Community Garden'],
     yearBuilt: 2010,
@@ -173,7 +173,7 @@ export const mockProperties: Property[] = [
     bedrooms: 6,
     bathrooms: 5,
     area: 5000,
-    images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'],
+    images: ['/realestate4.jpeg'],
     description: 'Magnificent estate with pool, tennis court, and guest house.',
     amenities: ['Swimming Pool', 'Tennis Court', 'Guest House', 'Wine Cellar', 'Home Theater', 'Gym'],
     yearBuilt: 2018,
@@ -189,7 +189,7 @@ export const mockProperties: Property[] = [
     bedrooms: 2,
     bathrooms: 2,
     area: 1600,
-    images: ['https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800'],
+    images: ['/realestate1.jpeg'],
     description: 'Converted industrial loft with exposed brick and high ceilings.',
     amenities: ['Exposed Brick', 'High Ceilings', 'Hardwood Floors', 'Freight Elevator', 'Rooftop Access'],
     yearBuilt: 2016,
@@ -197,7 +197,7 @@ export const mockProperties: Property[] = [
   }
 ]
 
-export const mockRooms: Room[] = [
+export const mockRooms: any[] = [
   // Sunrise Lodge Rooms
   {
     id: 'r1',
@@ -223,7 +223,10 @@ export const mockRooms: Room[] = [
         amountPaid: 600000,
         paymentStatus: 'completed',
         issues: [],
-        notes: []
+        notes: [],
+        assignmentStatus: 'active',
+        securityDeposit: 50000,
+        depositStatus: 'paid'
       }
     ]
   },

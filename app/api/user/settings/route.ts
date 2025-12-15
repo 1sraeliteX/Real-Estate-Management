@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AuthService } from '@/lib/services/authService'
 import { UserService } from '@/lib/services/userService'
+import { handleApiError } from '@/lib/errorHandler'
 
 async function getAuthenticatedUser(request: NextRequest) {
   const token = request.cookies.get('auth-token')?.value
@@ -22,11 +23,7 @@ export async function GET(request: NextRequest) {
     const settings = await UserService.getUserSettings(user.id)
     return NextResponse.json({ settings })
   } catch (error) {
-    console.error('Get settings error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }
 
@@ -46,10 +43,6 @@ export async function PUT(request: NextRequest) {
     
     return NextResponse.json({ settings: updatedSettings })
   } catch (error) {
-    console.error('Update settings error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error)
   }
 }

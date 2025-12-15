@@ -25,6 +25,10 @@ export const generateTestRoom = (propertyId: string, overrides: Partial<Room> = 
   status: 'available',
   occupants: [],
   yearlyRent: 600000,
+  maxOccupants: 2,
+  currentOccupants: 0,
+  hasPrivateBath: false,
+  hasKitchen: false,
   ...overrides
 })
 
@@ -42,6 +46,9 @@ export const generateTestOccupant = (roomId: string, overrides: Partial<RoomOccu
   paymentStatus: 'pending',
   issues: [],
   notes: [],
+  assignmentStatus: 'active',
+  securityDeposit: 50000,
+  depositStatus: 'paid',
   ...overrides
 })
 

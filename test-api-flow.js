@@ -24,7 +24,7 @@ async function testApiFlow() {
       area: 1000,
       description: 'Test property via API',
       amenities: ['WiFi', 'Gym', 'Pool'], // Array format from frontend
-      images: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'], // Array format
+      images: ['/realestate2.jpeg', '/realestate3.jpeg'], // Array format
       yearBuilt: 2023,
       parkingSpaces: 'yes'
     }

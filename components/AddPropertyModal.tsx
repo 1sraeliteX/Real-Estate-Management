@@ -114,7 +114,7 @@ export default function AddPropertyModal({ isOpen, onClose, onAdd }: AddProperty
       bedrooms: parseInt(formData.bedrooms),
       bathrooms: parseInt(formData.bathrooms),
       area: parseFloat(formData.area),
-      images: images.length > 0 ? images : ['https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800'],
+      images: images.length > 0 ? images : ['/realestate3.jpeg'],
       description: formData.description,
       amenities,
       yearBuilt: parseInt(formData.yearBuilt),

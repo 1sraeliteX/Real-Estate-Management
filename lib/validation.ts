@@ -17,8 +17,12 @@ export function validateProperty(data: Partial<Property>): { isValid: boolean; e
   if (data.parkingSpaces !== undefined) {
     if (typeof data.parkingSpaces === 'number' && data.parkingSpaces < 0) {
       errors.push('Parking spaces cannot be negative')
-    } else if (typeof data.parkingSpaces === 'string' && !['yes', 'no'].includes(data.parkingSpaces)) {
-      errors.push('Parking spaces must be a number, "yes", or "no"')
+    } else if (typeof data.parkingSpaces === 'string') {
+      // Allow numeric strings or 'yes'/'no'
+      const isNumericString = /^\d+$/.test(data.parkingSpaces)
+      if (!isNumericString && !['yes', 'no'].includes(data.parkingSpaces)) {
+        errors.push('Parking spaces must be a number, "yes", or "no"')
+      }
     }
   }
 
@@ -57,6 +61,7 @@ export function validateRoom(data: Partial<Room>): { isValid: boolean; errors: s
 export function validateOccupant(data: Partial<RoomOccupant>): { isValid: boolean; errors: string[] } {
   const errors: string[] = []
 
+  if (!data.roomId?.trim()) errors.push('Room selection is required')
   if (!data.name?.trim()) errors.push('Occupant name is required')
   if (!data.phone?.trim()) errors.push('Phone number is required')
   if (!data.nextOfKin?.trim()) errors.push('Next of kin is required')

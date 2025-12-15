@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Blank Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .debug-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .error {
+            color: red;
+            background: #ffe6e6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            background: #e6ffe6;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-info">
+        <h1>🔍 Debugging Your Blank Page Issue</h1>
+        <p>This page will help you identify why your React app shows a blank page.</p>
+    </div>
+
+    <div class="debug-info">
+        <h2>Step 1: Check Your Development Server</h2>
+        <p>Your development server should be running on:</p>
+        <ul>
+            <li><strong>Primary URL:</strong> <a href="http://localhost:3001/" target="_blank">http://localhost:3001/</a></li>
+            <li><strong>Dashboard URL:</strong> <a href="http://localhost:3001/dashboard" target="_blank">http://localhost:3001/dashboard</a></li>
+        </ul>
+        <p><strong>Click the links above to test if your server is accessible.</strong></p>
+    </div>
+
+    <div class="debug-info">
+        <h2>Step 2: Check Browser Console</h2>
+        <p>Open your browser's developer tools and check for errors:</p>
+        <ol>
+            <li>Press <strong>F12</strong> (or right-click → Inspect)</li>
+            <li>Go to the <strong>Console</strong> tab</li>
+            <li>Look for any red error messages</li>
+            <li>Check the <strong>Network</strong> tab for failed requests</li>
+        </ol>
+    </div>
+
+    <div class="debug-info">
+        <h2>Step 3: Common Issues & Solutions</h2>
+        
+        <h3>🚨 If you see JavaScript errors in console:</h3>
+        <ul>
+            <li><strong>Import/Export errors:</strong> Check if all components are properly imported</li>
+            <li><strong>Component errors:</strong> One of your React components might have a syntax error</li>
+            <li><strong>Missing dependencies:</strong> Run <code>npm install</code> to ensure all packages are installed</li>
+        </ul>
+
+        <h3>🌐 If you see network errors:</h3>
+        <ul>
+            <li><strong>404 errors:</strong> Files might not be building correctly</li>
+            <li><strong>CORS errors:</strong> API calls might be failing</li>
+            <li><strong>CSS not loading:</strong> Styling issues might make content invisible</li>
+        </ul>
+
+        <h3>⚛️ If React isn't mounting:</h3>
+        <ul>
+            <li>Check if you see "App component rendering..." in the console</li>
+            <li>Look for the root div in the HTML</li>
+            <li>Verify React and ReactDOM are properly installed</li>
+        </ul>
+    </div>
+
+    <div class="debug-info">
+        <h2>Step 4: Quick Fixes to Try</h2>
+        <ol>
+            <li><strong>Hard Refresh:</strong> Ctrl+Shift+R (Windows) or Cmd+Shift+R (Mac)</li>
+            <li><strong>Clear Cache:</strong> Clear browser cache and cookies</li>
+            <li><strong>Incognito Mode:</strong> Try opening in a private/incognito window</li>
+            <li><strong>Different Browser:</strong> Test in Chrome, Firefox, or Edge</li>
+            <li><strong>Restart Server:</strong> Stop and restart your development server</li>
+        </ol>
+    </div>
+
+    <div class="debug-info">
+        <h2>Step 5: Test Basic Functionality</h2>
+        <p>Click the button below to test if JavaScript is working:</p>
+        <button onclick="testJS()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Test JavaScript
+        </button>
+        <div id="js-test-result"></div>
+    </div>
+
+    <script>
+        function testJS() {
+            const result = document.getElementById('js-test-result');
+            result.innerHTML = '<div class="success">✅ JavaScript is working! The issue is likely with your React app.</div>';
+        }
+
+        // Auto-check if the main app is accessible
+        window.onload = function() {
+            console.log('🔍 Debug page loaded');
+            console.log('🔍 Checking if main app is accessible...');
+            
+            // Try to fetch the main app
+            fetch('http://localhost:3001/')
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ Main app server is accessible');
+                    } else {
+                        console.log('❌ Main app server returned error:', response.status);
+                    }
+                })
+                .catch(error => {
+                    console.log('❌ Cannot reach main app server:', error);
+                });
+        };
+    </script>
+</body>
+</html>
